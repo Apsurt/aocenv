@@ -66,7 +66,7 @@ def get_aoc_data(year: int, day: int, data_type: str) -> str:
 
     # Determine the cache filename
     file_extension = "md" if data_type == "instructions" else "txt"
-    cache_file = CACHE_DIR / str(year) / str(day) / f"{data_type}.{file_extension}"
+    cache_file = CACHE_DIR / str(year) / f"{day:02d}" / f"{data_type}.{file_extension}"
 
     # 1. Check cache first
     if cache_file.exists():
@@ -243,3 +243,42 @@ def scrape_year_progress(year: int) -> dict[int, int]:
             continue
 
     return progress
+
+def scrape_day_page_for_answers(year: int, day: int) -> dict[int, str]:
+    """
+    Scrapes a puzzle day's page to find any revealed correct answers.
+
+    Returns:
+        A dictionary mapping the part number (1 or 2) to the correct answer (str).
+    """
+    logger.info(f"Checking for correct answers on page for {year}-{day}...")
+    session_cookie = get_session_cookie()
+    if not session_cookie:
+        # Don't raise an error, just return empty if not configured
+        return {}
+
+    url = f"{AOC_BASE_URL}/{year}/day/{day}"
+    headers = {"User-Agent": "aoc-env by your-github-username (scraping answers)"}
+    cookies = {"session": session_cookie}
+
+    try:
+        response = requests.get(url, headers=headers, cookies=cookies)
+        response.raise_for_status()
+    except requests.RequestException:
+        return {}
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    answers = {}
+
+    # The answer is typically in a <p> tag right after the puzzle text.
+    # The key phrase is "Your puzzle answer was <code>...</code>"
+    for p_tag in soup.find_all("p"):
+        if "Your puzzle answer was" in p_tag.get_text():
+            answer_code = p_tag.find("code")
+            if answer_code:
+                # The first one found is Part 1, the second is Part 2
+                part = 1 if 1 not in answers else 2
+                answers[part] = answer_code.get_text()
+                logger.info(f"Found correct answer for Part {part}: {answers[part]}")
+
+    return answers

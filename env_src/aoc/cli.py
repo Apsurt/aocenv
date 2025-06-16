@@ -287,49 +287,94 @@ def load(part, year, day, force):
         logger.error(f"Failed to load solution into notepad.py: {e}")
 
 @cli.command()
-def sync():
+@click.option("-f", "--force", is_flag=True, help="Force sync even if it was run recently.")
+def sync(force):
     """
-    Scrapes AoC website for your progress and caches all puzzle texts.
+    Scrapes AoC website for your progress and caches all puzzle texts and answers.
 
     This is a long-running command that makes many requests. Use it sparingly.
+    By default, this command can only be run once every 24 hours.
     """
     logger = logging.getLogger(__name__)
+
+    if not force and PROGRESS_JSON_PATH.exists():
+        with open(PROGRESS_JSON_PATH, 'r') as f:
+            try:
+                data = json.load(f)
+                last_sync_str = data.get("last_sync_timestamp")
+                if last_sync_str:
+                    last_sync_time = datetime.datetime.fromisoformat(last_sync_str)
+                    if datetime.datetime.now(datetime.timezone.utc) - last_sync_time < datetime.timedelta(days=1):
+                        display_time = last_sync_time.astimezone()
+                        click.secho(f"Sync was already performed at {display_time.strftime('%Y-%m-%d %H:%M:%S')}.", fg="yellow")
+                        click.echo("Please wait 24 hours or use the --force flag to override.")
+                        return
+            except json.JSONDecodeError:
+                logger.warning("Could not parse progress.json, proceeding with sync.")
+
     click.secho("Starting full sync with Advent of Code website...", fg="yellow")
-    click.echo("This may take several minutes. Please be patient.")
 
-    now = datetime.datetime.now()
+    # PASS 1: Discover all tasks that need to be run.
+    logger.info("Discovering puzzles to sync...")
+    now = datetime.datetime.now(datetime.timezone.utc) # Use timezone-aware
     latest_year_to_check = now.year if now.month == 12 else now.year - 1
-
-    years_to_sync = range(2015, latest_year_to_check + 1)
+    tasks_to_run = []
     full_progress = {}
 
+    for year in range(2015, latest_year_to_check + 1):
+        try:
+            year_progress = aoc._utils.scrape_year_progress(year)
+            if not year_progress:
+                continue
+            full_progress[str(year)] = year_progress
+            for day_str, star_count in year_progress.items():
+                tasks_to_run.append({"year": year, "day": int(day_str), "stars": star_count})
+        except Exception as e:
+            logger.error(f"Failed to discover progress for year {year}: {e}")
+
+    click.echo(f"Found {len(tasks_to_run)} puzzles to sync. Starting download...")
+
+    # PASS 2: Execute the tasks with a progress bar.
+    def run_task(task):
+        """Helper function to process a single task. No logging here."""
+        year, day, stars = task['year'], task['day'], task['stars']
+        aoc._utils.get_aoc_data(year, day, "instructions")
+        if stars > 0:
+            correct_answers = aoc._utils.scrape_day_page_for_answers(year, day)
+            if correct_answers:
+                answers_cache = aoc._utils._read_answers_cache(year, day)
+                for part, answer in correct_answers.items():
+                    part_key = f"part_{part}"
+                    answers_cache[part_key]["correct_answer"] = answer
+                aoc._utils._write_answers_cache(year, day, answers_cache)
+        # time.sleep(0.25)
+
+    def show_current_task(task):
+        """Provides the text to display next to the progress bar."""
+        if task:
+            return f"Syncing {task['year']}-{task['day']:02d}"
+        return "" # Message when bar is finished
+
     with click.progressbar(
-            years_to_sync, label="Syncing years...", length=len(years_to_sync)
-        ) as progress_bar:
-            for year in progress_bar:
-                try:
-                    year_progress = aoc._utils.scrape_year_progress(year)
-                    if not year_progress:
-                        continue # Skip years with no participation
-
-                    full_progress[str(year)] = year_progress
-
-                    # Fetch texts for every day the user has participated in
-                    for day_str in year_progress.keys():
-                        day = int(day_str)
-                        logger.info(f"Checking {year}-{day:02d}...")
-                        aoc._utils.get_aoc_data(year, day, "instructions")
-
-                except Exception as e:
-                    logger.error(f"Failed to sync year {year}: {e}")
+        tasks_to_run,
+        label="Syncing puzzle data",
+        length=len(tasks_to_run),
+        item_show_func=show_current_task
+    ) as bar:
+        for task in bar:
+            run_task(task)
 
     # Save the aggregated progress data
+    data_to_save = {
+        "last_sync_timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "progress": full_progress
+    }
     with open(PROGRESS_JSON_PATH, 'w') as f:
-        json.dump(full_progress, f, indent=2)
+        json.dump(data_to_save, f, indent=2, sort_keys=True)
 
     click.secho("\n✅ Sync complete!", fg="green")
     click.echo(f"Your progress has been saved to {PROGRESS_JSON_PATH}")
-    click.echo("You can now use the 'aoc stats' command.")
+    click.echo("You can now use the 'aoc stats'")
 
 @cli.command()
 def stats():
@@ -343,7 +388,11 @@ def stats():
         return
 
     with open(PROGRESS_JSON_PATH, 'r') as f:
-        progress_data = json.load(f)
+        progress_data = json.load(f).get("progress", {})
+
+    if not progress_data:
+        click.secho("Progress data is empty. Run 'aoc sync' to gather data.", fg="yellow")
+        return
 
     # Launch the Textual app, passing the progress data to it
     app = StatsApp(progress_data=progress_data)
