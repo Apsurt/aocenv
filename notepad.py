@@ -1,20 +1,32 @@
 import aoc
 
-# Set the context for the puzzle you want to solve
-# It defaults to the latest, but you can override it
-# aoc.year = 2023
-# aoc.day = 1
+# --- Context Setting ---
+# By default, the environment will use the latest puzzle.
+# You can override it by uncommenting and setting the year/day below.
 
-print("--- My AoC Solution Runner ---")
-print(f"Fetching data for Year {aoc.year}, Day {aoc.day}")
+# aoc.year = 2024
+# aoc.day = 25
+aoc.part = 1
 
-# Get the puzzle input using the function we built
-puzzle_input = aoc.get_input()
+# --- Puzzle Logic ---
+# Get the puzzle input. The 'get_input' function will be automatically
+# populated with the aoc.year and aoc.day context.
 
-# Process the data (example: print the first 5 lines)
-lines = puzzle_input.strip().split('\n')
-print("\nFirst 5 lines of puzzle input:")
-for i, line in enumerate(lines[:5]):
-    print(f"  {i+1}: {line}")
+# puzzle_input = aoc.get_input()
 
-print("\nCode execution finished.")
+# Your solution logic here...
+def your_function_name():
+    return
+
+answer = your_function_name()
+
+# --- Submission ---
+# After solving, uncomment the following lines to submit your answer.
+
+# if answer is not None:
+#     print(aoc.submit(answer))
+
+# --- Binding ---
+# If you don't have automated binding enabled uncomment this line:
+
+# aoc.bind()
