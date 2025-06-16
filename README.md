@@ -1,3 +1,4 @@
+
 # Advent of Code Environment
 
 Welcome to your personalized development environment for solving [Advent of Code](https://adventofcode.com/) puzzles! This project is designed to streamline your workflow, automate tedious tasks, and let you focus on what's fun: the problem-solving.
@@ -14,6 +15,7 @@ It provides a robust command-line interface (CLI) and a Python module to handle 
 * **Solution Management**: Automatically or manually archive your code with `aoc.bind()` and load it back into your workspace with `aoc load`.
 * **Safe & Robust**: Built-in safety checks, confirmation prompts for destructive actions.
 * **Helpful Logging**: Use the `-v` flag to see what the tool is doing behind the scenes.
+* **Custom Templates**: Save and load your own boilerplate templates for different kinds of puzzles.
 
 ## 🚀 Getting Started
 
@@ -116,6 +118,13 @@ To start the next part, you can clear your workspace with aoc clear or load your
 aoc load 1 --year 2024 --day 1
 ```
 
+## 💾 Custom Templates
+You can save the contents of `notepad.py` as a named template to reuse later. This is great for setting up common scenarios, like graph traversal or grid manipulation problems. All templates are stored in the `.templates/` directory.
+* **Save a template:** `aoc template save <template_name>`
+* **List all templates:** `aoc template list`
+* **Load a template:** `aoc template load <template_name>`
+* **Delete a template:** `aoc template delete <template_name>`
+
 ## 📖 Command Reference
 
 | Command                      | Description                                                                                                    |
@@ -129,7 +138,8 @@ aoc load 1 --year 2024 --day 1
 | `aoc run [-t]`               | Executes the `notepad.py` script. `-t` times the execution.                                                    |
 | `aoc load <p> [opts] [-f]`   | Loads a saved solution into `notepad.py`. `<p>` is part 1 or 2. `-f` forces overwrite.                        |
 | `aoc list`                   | Lists all your archived solutions from the `solutions/` directory.                                             |
-| `aoc clear`                  | Clears all content from `notepad.py`.                                                                          |
+| `aoc clear`                  | Clears all content from `notepad.py`.                                                                        |
+| `aoc template <sub-cmd>` | Manages custom templates (`save`, `load`, `list`, `delete`). |
 
 **Options for `text`, `input`, and `load`:**
 * `--year YYYY`: Specify the puzzle year.

@@ -20,6 +20,7 @@ LOGS_DIR = PROJECT_ROOT / ".logs"
 CACHE_DIR = PROJECT_ROOT / ".cache"
 SOLUTIONS_DIR = PROJECT_ROOT / "solutions"
 NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"
+TEMPLATES_DIR = PROJECT_ROOT / ".templates"
 PROGRESS_JSON_PATH = PROJECT_ROOT / "progress.json"
 
 def setup_logging(verbose: bool):
@@ -405,65 +406,18 @@ def stats():
     app.run()
 
 @cli.command()
+@click.argument('name', default='default', required=False)
 @click.option("-f", "--force", is_flag=True, help="Force overwrite of notepad.py if not empty.")
-def start(force):
+def start(name, force):
     """
-    Populates notepad.py with a boilerplate template for a new puzzle.
+    Populates notepad.py with a template.
+
+    If NAME is provided, it loads that specific template.
+    Otherwise, it defaults to loading the 'default' template.
     """
-    logger = logging.getLogger(__name__)
-
-    # 1. Safety Check: aoc load
-    if NOTEPAD_PATH.exists() and NOTEPAD_PATH.read_text().strip() and not force:
-        click.secho("Warning: notepad.py is not empty!", fg="yellow")
-        if not click.confirm("Do you want to overwrite its contents with the template?"):
-            click.echo("Operation cancelled.")
-            return
-
-    # 2. Get latest puzzle date to suggest in the template
-    latest_year, latest_day = aoc._utils.get_latest_puzzle_date()
-
-    # 3. Define the boilerplate template
-    boilerplate = f"""import aoc
-
-# --- Context Setting ---
-# By default, the environment will use the latest puzzle.
-# You can override it by uncommenting and setting the year/day below.
-
-# aoc.year = {latest_year}
-# aoc.day = {latest_day}
-aoc.part = 1
-
-# --- Puzzle Logic ---
-# Get the puzzle input. The 'get_input' function will be automatically
-# populated with the aoc.year and aoc.day context.
-
-# puzzle_input = aoc.get_input()
-
-# Your solution logic here...
-def your_function_name():
-    return
-
-answer = your_function_name()
-
-# --- Submission ---
-# After solving, uncomment the following lines to submit your answer.
-
-# if answer is not None:
-#     print(aoc.submit(answer))
-
-# --- Binding ---
-# If you don't have automated binding enabled uncomment this line:
-
-# aoc.bind()
-"""
-
-    # 4. Write the template to the file
-    try:
-        # We use strip() to remove the leading indentation from the multiline string
-        NOTEPAD_PATH.write_text(boilerplate.strip())
-        click.secho(f"✅ notepad.py has been populated with the boilerplate for {latest_year}-{latest_day:02d}.", fg="green")
-    except Exception as e:
-        logger.error(f"Failed to write boilerplate to notepad.py: {e}")
+    ctx = click.get_current_context()
+    # Pass the 'name' variable to the invoked command
+    ctx.invoke(template_load, name=name, force=force)
 
 @cli.command()
 def clear():
@@ -472,7 +426,7 @@ def clear():
     click.secho("✅ notepad.py has been cleared.", fg="green")
 
 @cli.command(name="list")
-def list_solutions():
+def solutions_list():
     """Lists all archived solutions."""
     if not SOLUTIONS_DIR.exists():
         click.echo("No solutions directory found.")
@@ -503,6 +457,91 @@ def list_solutions():
             click.echo(f"  Day {day}, {part.replace('_', ' ').title()}")
         except IndexError:
             continue
+
+@cli.group()
+def template():
+    """Manages custom user templates."""
+    pass
+
+@template.command(name="save")
+@click.argument('name')
+@click.option("-f", "--force", is_flag=True, help="Force overwrite of an existing template.")
+def template_save(name, force):
+    """Saves the current content of notepad.py as a new template."""
+    logger = logging.getLogger(__name__)
+    template_path = TEMPLATES_DIR / f"{name}.py.template"
+
+    if template_path.exists() and not force:
+        click.secho(f"Error: Template '{name}' already exists. Use --force to overwrite.", fg="red")
+        return
+
+    try:
+        content = NOTEPAD_PATH.read_text()
+        template_path.write_text(content)
+        click.secho(f"✅ Template '{name}' saved successfully.", fg="green")
+    except Exception as e:
+        logger.error(f"Failed to save template: {e}")
+
+@template.command(name="load")
+@click.argument('name')
+@click.option("-f", "--force", is_flag=True, help="Force overwrite of notepad.py if not empty.")
+def template_load(name, force):
+    """Loads a template into notepad.py."""
+    logger = logging.getLogger(__name__)
+    template_path = TEMPLATES_DIR / f"{name}.py.template"
+
+    if not template_path.exists():
+        click.secho(f"Error: Template '{name}' not found.", fg="red")
+        return
+
+    if NOTEPAD_PATH.exists() and NOTEPAD_PATH.read_text().strip() and not force:
+        click.secho("Warning: notepad.py is not empty!", fg="yellow")
+        if not click.confirm("Do you want to overwrite its contents?"):
+            click.echo("Load operation cancelled.")
+            return
+
+    try:
+        content = template_path.read_text()
+        NOTEPAD_PATH.write_text(content)
+        click.secho(f"✅ Template '{name}' loaded into notepad.py.", fg="green")
+    except Exception as e:
+        logger.error(f"Failed to load template: {e}")
+
+@template.command(name="list")
+def template_list():
+    """Lists all available custom templates."""
+    if not TEMPLATES_DIR.exists() or not any(TEMPLATES_DIR.iterdir()):
+        click.echo("No custom templates found.")
+        return
+
+    click.secho("--- Custom Templates ---", bold=True)
+    for template_file in sorted(TEMPLATES_DIR.glob("*.py.template")):
+        # template_file.stem gives the filename without the final extension
+        click.echo(f"  - {template_file.stem.replace('.py', '')}")
+
+@template.command(name="delete")
+@click.argument('name')
+def template_delete(name):
+    """Deletes a saved template."""
+    if name.lower() == 'default':
+        click.secho("Error: The 'default' template is protected and cannot be deleted.", fg="red")
+        click.echo("You can overwrite it with 'aoc template save default --force'.")
+        return
+
+    template_path = TEMPLATES_DIR / f"{name}.py.template"
+
+    if not template_path.exists():
+        click.secho(f"Error: Template '{name}' not found.", fg="red")
+        return
+
+    if click.confirm(f"Are you sure you want to delete the template '{name}'?"):
+        try:
+            template_path.unlink()
+            click.secho(f"✅ Template '{name}' deleted.", fg="green")
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Failed to delete template: {e}")
+    else:
+        click.echo("Delete operation cancelled.")
 
 if __name__ == "__main__":
     cli()
