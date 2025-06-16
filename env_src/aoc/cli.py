@@ -398,5 +398,66 @@ def stats():
     app = StatsApp(progress_data=progress_data)
     app.run()
 
+@cli.command()
+@click.option("-f", "--force", is_flag=True, help="Force overwrite of notepad.py if not empty.")
+def start(force):
+    """
+    Populates notepad.py with a boilerplate template for a new puzzle.
+    """
+    logger = logging.getLogger(__name__)
+
+    # 1. Safety Check: aoc load
+    if NOTEPAD_PATH.exists() and NOTEPAD_PATH.read_text().strip() and not force:
+        click.secho("Warning: notepad.py is not empty!", fg="yellow")
+        if not click.confirm("Do you want to overwrite its contents with the template?"):
+            click.echo("Operation cancelled.")
+            return
+
+    # 2. Get latest puzzle date to suggest in the template
+    latest_year, latest_day = aoc._utils.get_latest_puzzle_date()
+
+    # 3. Define the boilerplate template
+    boilerplate =f"""import aoc
+
+# --- Context Setting ---
+# By default, the environment will use the latest puzzle.
+# You can override it by uncommenting and setting the year/day below.
+
+# aoc.year = {latest_year}
+# aoc.day = {latest_day}
+aoc.part = 1
+
+# --- Puzzle Logic ---
+# Get the puzzle input. The 'get_input' function will be automatically
+# populated with the aoc.year and aoc.day context.
+
+# puzzle_input = aoc.get_input()
+
+# Your solution logic here...
+def your_function_name():
+    return
+
+answer = your_function_name()
+
+# --- Submission ---
+# After solving, uncomment the following lines to submit your answer.
+
+# if answer is not None:
+#     print(aoc.submit(answer))
+
+# --- Binding ---
+# If you don't have automated binding enabled uncomment this line:
+
+# aoc.bind()
+"""
+
+    # 4. Write the template to the file
+    try:
+        # We use strip() to remove the leading indentation from the multiline string
+        NOTEPAD_PATH.write_text(boilerplate.strip())
+        click.secho(f"✅ notepad.py has been populated with the boilerplate for {latest_year}-{latest_day:02d}.", fg="green")
+    except Exception as e:
+        logger.error(f"Failed to write boilerplate to notepad.py: {e}")
+
 if __name__ == "__main__":
     cli()
