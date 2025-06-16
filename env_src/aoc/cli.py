@@ -200,6 +200,7 @@ def nuke():
 
     click.secho("🔥 NUKE WARNING 🔥", fg="red", bold=True, blink=True)
     click.echo("This command will permanently delete the CONTENTS of:")
+    click.echo(f"  - Notepad: {NOTEPAD_PATH}")
     click.echo(f"  - Cache: {CACHE_DIR}")
     click.echo(f"  - Solutions: {SOLUTIONS_DIR}")
     click.echo(f"  - Logs: {LOGS_DIR}")
@@ -223,6 +224,11 @@ def nuke():
                 else:
                     item.unlink()
 
+        if NOTEPAD_PATH.exists():
+            NOTEPAD_PATH.unlink()
+            NOTEPAD_PATH.write_text("")
+            logger.info("Cleared notepad.py file.")
+
         # Delete the config file
         if CONFIG_FILE_PATH.exists():
             CONFIG_FILE_PATH.unlink()
@@ -233,6 +239,47 @@ def nuke():
 
     except Exception as e:
         logger.error(f"An error occurred during the nuke operation: {e}")
+
+@cli.command()
+@click.argument('part', type=click.Choice(['1', '2']))
+@click.option("-y", "--year", default=None, type=int, help="The puzzle year. Defaults to latest.")
+@click.option("-d", "--day", default=None, type=int, help="The puzzle day. Defaults to latest.")
+@click.option("-f", "--force", is_flag=True, help="Force overwrite of notepad.py if not empty.")
+def load(part, year, day, force):
+    """
+    Loads a saved solution into notepad.py.
+
+    PART is the puzzle part to load (1 or 2).
+    """
+    logger = logging.getLogger(__name__)
+
+    # 1. Determine the target year and day
+    target_year = year if year is not None else aoc.year
+    target_day = day if day is not None else aoc.day
+    target_part = int(part)
+
+    # 2. Check if the solution file exists
+    solution_path = SOLUTIONS_DIR / str(target_year) / f"{target_day:02d}" / f"part_{target_part}.py"
+    logger.info(f"Attempting to load solution from: {solution_path}")
+
+    if not solution_path.exists():
+        click.secho(f"Error: Solution not found at {solution_path}", fg="red")
+        return
+
+    # 3. Check if notepad.py is empty and handle confirmation/force
+    if NOTEPAD_PATH.exists() and NOTEPAD_PATH.read_text().strip() and not force:
+        click.secho("Warning: notepad.py is not empty!", fg="yellow")
+        if not click.confirm("Do you want to overwrite its contents?"):
+            click.echo("Load operation cancelled.")
+            return
+
+    # 4. Perform the file copy
+    try:
+        solution_content = solution_path.read_text()
+        NOTEPAD_PATH.write_text(solution_content)
+        click.secho(f"✅ Successfully loaded Part {part} for {target_year}-{target_day:02d} into notepad.py.", fg="green")
+    except Exception as e:
+        logger.error(f"Failed to load solution into notepad.py: {e}")
 
 if __name__ == "__main__":
     cli()
