@@ -5,10 +5,14 @@ import logging
 import colorlog
 import aoc
 import os
+import subprocess
+import time
 
 # --- PATHS & CONFIG ---
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 CONFIG_FILE_PATH = Path(__file__).parent.parent / "config.ini"
 LOGS_DIR = Path(__file__).parent.parent.parent / ".logs"
+NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"
 
 def setup_logging(verbose: bool):
     """Configures file and console logging."""
@@ -92,7 +96,7 @@ def setup():
 @cli.command()
 @click.option("--year", "-y", default=None, type=int, help="The puzzle year. Defaults to latest.")
 @click.option("--day", "-d", default=None, type=int, help="The puzzle day. Defaults to latest.")
-def instructions(year, day):
+def text(year, day):
     """
     Fetches and displays the puzzle instructions for a given day.
     """
@@ -130,6 +134,40 @@ def input(year, day):
         click.echo(input_text)
     except Exception as e:
         logger.error(f"Failed to get input: {e}")
+
+@cli.command()
+@click.option('-t', '--time', 'time_it', is_flag=True, help="Time the execution of the script.")
+def run(time_it):
+    """
+    Executes the code in the main notepad.py file.
+    """
+    logger = logging.getLogger(__name__)
+
+    if not NOTEPAD_PATH.exists():
+        logger.error(f"Notepad file not found at: {NOTEPAD_PATH}")
+        return
+
+    # --- Timing Logic ---
+    start_time = 0
+    if time_it:
+        # time.perf_counter() is best for measuring short durations
+        start_time = time.perf_counter()
+
+    logger.info(f"Executing {NOTEPAD_PATH}...")
+    try:
+        # Use subprocess to run the script
+        subprocess.run(["python", NOTEPAD_PATH], check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"notepad.py exited with an error (return code {e.returncode}).")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while running notepad.py: {e}")
+    finally:
+        # --- Timing Logic ---
+        if time_it:
+            end_time = time.perf_counter()
+            duration_ms = (end_time - start_time) * 1000
+            # Use secho for colored output
+            click.secho(f"\n⏱️ Execution time: {duration_ms:.2f} ms", fg="yellow")
 
 if __name__ == "__main__":
     cli()
