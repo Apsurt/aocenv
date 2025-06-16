@@ -124,6 +124,9 @@ def bind(overwrite: bool = False):
         dest_path.write_text(cleaned_content)
         logger.info(f"Solution successfully saved to {dest_path}")
 
+        if _utils.get_bool_config_setting("auto_commit_on_bind"):
+            _utils.git_commit_solution(year, day, part)
+
         if _utils.get_bool_config_setting("auto_clear_on_bind"):
             logger.info("Auto-clearing notepad.py...")
             clear()

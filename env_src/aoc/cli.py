@@ -108,12 +108,18 @@ def setup():
             default=False
         )
 
+    auto_commit = click.confirm(
+            "\nAutomatically commit solutions to Git after a successful bind?",
+            default=True
+        )
+
     # Save the answers to the config file
     config = configparser.ConfigParser()
     config["user"] = {
         "session_cookie": session_cookie,
         "auto_bind": "true" if auto_bind else "false",
-        "auto_clear_on_bind": "true" if auto_clear else "false"
+        "auto_clear_on_bind": "true" if auto_clear else "false",
+        "auto_commit_on_bind": "true" if auto_commit else "false"
     }
 
     try:

@@ -16,6 +16,7 @@ It provides a robust command-line interface (CLI) and a Python module to handle 
 * **Safe & Robust**: Built-in safety checks, confirmation prompts for destructive actions.
 * **Helpful Logging**: Use the `-v` flag to see what the tool is doing behind the scenes.
 * **Custom Templates**: Save and load your own boilerplate templates for different kinds of puzzles.
+* **Automatic Git Commits**: Optionally auto-commit your solutions with a standardized message upon successful binding.
 
 ## 🚀 Getting Started
 
@@ -139,7 +140,7 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 
 | Command                      | Description                                                                                                    |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `aoc setup`                  | Runs the interactive wizard to configure your session cookie and preferences.                                  |
+| `aoc setup`                  | Runs the interactive wizard to configure your session cookie and preferences (auto-bind, auto-clear, auto-commit).                                  |
 | `aoc sync [--force]`         | Scrapes your progress from AoC, caching all puzzle texts and answers. Can only be run once/day unless forced. |
 | `aoc stats`                  | Launches the interactive, scrollable TUI to view your progress stats.                                          |
 | `aoc start [NAME] [-f]`             | Populates `notepad.py` with a template. Defaults to the `default` template if `NAME` is omitted. `-f` forces overwrite.                      |
@@ -169,7 +170,7 @@ These functions and variables are available within your `notepad.py` script afte
 | `aoc.part = P`        | Sets the part context (1 or 2). **Required** for `submit()` and `bind()`.                                    |
 | `aoc.get_input()`     | Returns the puzzle input as a string for the current context.                                               |
 | `aoc.submit(answer)`  | Submits your `answer`. Returns a formatted string with the server's response. Caches submissions.             |
-| `aoc.bind(overwrite=False)`  | Archives `notepad.py`. Cleans itself from the saved code. `overwrite=True` overwrites an existing file. |
+| `aoc.bind(overwrite=False)`  | Archives `notepad.py`. Can trigger an auto-commit and auto-clear. Cleans itself from the saved code. `ow=True` overwrites. |
 | `aoc.clear()`         | Clears all content from `notepad.py`.                                                                       |
 
 ## 📁 Project Structure

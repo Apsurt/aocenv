@@ -7,6 +7,7 @@ import logging
 from bs4 import BeautifulSoup
 import json
 import time
+import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -301,3 +302,44 @@ def _write_tests_cache(year: int, day: int, data: dict):
     cache_file = cache_dir / "tests.json"
     with open(cache_file, 'w') as f:
         json.dump(data, f, indent=2)
+
+def git_commit_solution(year: int, day: int, part: int):
+    """
+    Stages and commits a solution file with a standardized message.
+    """
+    logger = logging.getLogger(__name__)
+    solution_path = PROJECT_ROOT / "solutions" / str(year) / f"{day:02d}" / f"part_{part}.py"
+    # Also good to commit the progress file if it has changed
+    progress_path = PROJECT_ROOT / "progress.json"
+
+    commit_message = f"feat({year}-{day:02d}): Solve Part {part}"
+
+    try:
+        # Check if we are in a git repository and there are changes to commit
+        status_check = subprocess.run(
+            ["git", "status", "--porcelain", str(solution_path)],
+            capture_output=True, text=True, check=True
+        )
+        # If the output is empty, the file is not changed or not tracked
+        if not status_check.stdout.strip():
+            logger.info("No changes to solution file to commit.")
+            return
+
+        logger.info(f"Staging and committing solution with message: '{commit_message}'")
+
+        # Stage the files
+        subprocess.run(["git", "add", str(solution_path)], check=True)
+        if progress_path.exists():
+            subprocess.run(["git", "add", str(progress_path)], check=True)
+
+        # Commit the changes
+        subprocess.run(["git", "commit", "-m", commit_message], check=True)
+
+        logger.info("Auto-commit successful.")
+
+    except FileNotFoundError:
+        logger.error("Auto-commit failed: 'git' command not found. Is Git installed and in your PATH?")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Auto-commit failed: A git command failed to execute.\nError: {e.stderr}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during auto-commit: {e}"
