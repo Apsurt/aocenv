@@ -471,5 +471,38 @@ def clear():
     aoc.clear()
     click.secho("✅ notepad.py has been cleared.", fg="green")
 
+@cli.command(name="list")
+def list_solutions():
+    """Lists all archived solutions."""
+    if not SOLUTIONS_DIR.exists():
+        click.echo("No solutions directory found.")
+        return
+
+    # Use glob to find all part_*.py files
+    solution_files = sorted(SOLUTIONS_DIR.glob("**/part_*.py"), reverse=True)
+
+    if not solution_files:
+        click.echo("No solutions have been saved yet.")
+        return
+
+    click.secho("--- Archived Solutions ---", bold=True)
+
+    last_year = None
+    for path in solution_files:
+        try:
+            # path.parts gives a tuple of the path components
+            # e.g., ('solutions', '2020', '07', 'part_1.py')
+            year = path.parts[-3]
+            day = path.parts[-2]
+            part = path.stem # 'part_1'
+
+            if year != last_year:
+                click.secho(f"\nYear {year}", fg="bright_yellow")
+                last_year = year
+
+            click.echo(f"  Day {day}, {part.replace('_', ' ').title()}")
+        except IndexError:
+            continue
+
 if __name__ == "__main__":
     cli()
