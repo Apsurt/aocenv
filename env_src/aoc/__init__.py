@@ -45,7 +45,11 @@ def submit(answer) -> str:
         if _utils.get_bool_config_setting("auto_bind", default=True):
             logger.info("Auto-binding solution...")
             bind()
+        print(f"✅ {response_text}")
         return f"✅ {response_text}"
+    elif "You don't seem to be solving the right level" in response_text:
+            logger.warning(f"Part {part} has already been completed.")
+            return f"✅ Part {part} has already been completed. The server did not accept the new submission."
     else:
         logger.warning(f"Answer is incorrect. Response: {response_text}")
         return f"❌ {response_text}"
