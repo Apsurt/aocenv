@@ -5,6 +5,7 @@ from pathlib import Path
 import datetime
 import logging
 from bs4 import BeautifulSoup
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,26 @@ CONFIG_FILE_PATH = Path(__file__).parent.parent / "config.ini"
 AOC_BASE_URL = "https://adventofcode.com"
 
 # --- HELPER FUNCTIONS ---
+
+def _read_answers_cache(year: int, day: int) -> dict:
+    """Reads the answers.json cache for a given day."""
+    cache_file = CACHE_DIR / str(year) / f"{day:02d}" / "answers.json"
+    if not cache_file.exists():
+        # Return the default structure if the file doesn't exist
+        return {
+            "part_1": {"correct_answer": None, "submissions": []},
+            "part_2": {"correct_answer": None, "submissions": []}
+        }
+    with open(cache_file, 'r') as f:
+        return json.load(f)
+
+def _write_answers_cache(year: int, day: int, data: dict):
+    """Writes data to the answers.json cache for a given day."""
+    cache_dir = CACHE_DIR / str(year) / f"{day:02d}"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / "answers.json"
+    with open(cache_file, 'w') as f:
+        json.dump(data, f, indent=2)
 
 def get_session_cookie() -> str | None:
     """Reads the session cookie from the config file."""
@@ -115,27 +136,53 @@ def get_latest_puzzle_date() -> tuple[int, int]:
 
 def post_answer(year: int, day: int, part: int, answer) -> str:
     """
-    Submits an answer for a given puzzle.
-    Parses the response to determine if the answer was correct.
+    Submits an answer, with full caching support.
+    Checks cache before submitting and saves the result after.
     """
+    part_key = f"part_{part}"
+    str_answer = str(answer)
+
+    # 1. Check cache before doing anything
+    cached_data = _read_answers_cache(year, day)
+
+    # Check if this exact answer has been submitted before
+    for sub in cached_data[part_key]["submissions"]:
+        if sub["answer"] == str_answer:
+            logger.info(f"Answer '{str_answer}' found in cache. Returning cached result.")
+            return sub["result"]
+
+    # Check if we already know the correct answer
+    if cached_data[part_key]["correct_answer"] is not None:
+        logger.warning(f"Correct answer for Part {part} is already known. Submission cancelled.")
+        return "You don't seem to be solving the right level. Did you already complete it?"
+
+    # 2. If not in cache, proceed with web submission
+    logger.info(f"Answer '{str_answer}' not in cache. Submitting to AoC website.")
     session_cookie = get_session_cookie()
     if not session_cookie:
         raise ConnectionError("Session cookie not found. Please run 'aoc setup'.")
 
     url = f"{AOC_BASE_URL}/{year}/day/{day}/answer"
-    headers = {"User-Agent": "aoc-env by your-github-username (submitting answer)"}
+    headers = {"User-Agent": "aoc-env by your-github-username (caching submissions)"}
     cookies = {"session": session_cookie}
-    payload = {"level": part, "answer": answer}
+    payload = {"level": part, "answer": str_answer}
 
-    logger.info(f"Submitting answer for {year}-{day} Part {part}: {answer}")
     response = requests.post(url, headers=headers, cookies=cookies, data=payload)
     response.raise_for_status()
 
-    # Parse the response HTML to find the feedback message
     soup = BeautifulSoup(response.text, "html.parser")
-    main_article = soup.find("article")
-    if not main_article:
-        return "Could not parse response from server."
+    response_text = soup.find("article").p.get_text()
 
-    # Return the first paragraph of the response text
-    return main_article.p.get_text()
+    # 3. Save the new result to the cache
+    logger.info("Saving new submission result to cache.")
+    cached_data[part_key]["submissions"].append({
+        "answer": str_answer,
+        "result": response_text
+    })
+    # If correct, also store it in the 'correct_answer' field
+    if "That's the right answer!" in response_text:
+        cached_data[part_key]["correct_answer"] = str_answer
+
+    _write_answers_cache(year, day, cached_data)
+
+    return response_text
