@@ -16,7 +16,6 @@ build/
 # Application specific
 .cache/
 .logs/
-progress.json
 env_src/config.ini
 
 # IDEs
