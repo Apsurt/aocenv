@@ -4,13 +4,13 @@ from pathlib import Path
 import logging
 import colorlog
 import aoc
-import os
 import subprocess
 import time
 import shutil
 import datetime
 import json
-import shutil
+import re
+import os
 from .stats_viewer import StatsApp
 
 # --- PATHS & CONFIG ---
@@ -644,6 +644,64 @@ def test_delete(part, index, year, day):
     aoc._utils._write_tests_cache(target_year, target_day, tests_data)
 
     click.secho(f"✅ Test #{index} for Part {part} has been deleted.", fg="green")
+
+@test.command(name="run")
+@click.option("-y", "--year", default=None, type=int, help="Puzzle year. Defaults to context.")
+@click.option("-d", "--day", default=None, type=int, help="Puzzle day. Defaults to context.")
+def test_run(year, day):
+    """Runs notepad.py against all saved test cases for a given day."""
+    logger = logging.getLogger(__name__)
+    target_year = year if year is not None else aoc.year
+    target_day = day if day is not None else aoc.day
+
+    try:
+        notepad_content = NOTEPAD_PATH.read_text()
+        part_match = re.search(r"aoc\.part\s*=\s*([12])", notepad_content)
+        if not part_match:
+            click.secho("Error: Could not find 'aoc.part = 1' or 'aoc.part = 2' in notepad.py.", fg="red")
+            return
+        part = int(part_match.group(1))
+        part_key = f"part_{part}"
+    except FileNotFoundError:
+        click.secho(f"Error: notepad.py not found.", fg="red")
+        return
+
+    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+    tests_to_run = tests_data.get(part_key, [])
+    if not tests_to_run:
+        click.echo(f"No test cases found for Part {part}. Add one with 'aoc test add'.")
+        return
+
+    click.secho(f"--- Running {len(tests_to_run)} Test(s) for Part {part} ---", bold=True)
+    passed_count = 0
+
+    for i, test in enumerate(tests_to_run):
+        click.secho(f"\n--- Test Case #{i+1} ---", fg="yellow")
+
+        test_env = os.environ.copy()
+        test_env["AOC_TEST_MODE"] = "true"
+        test_env["AOC_TEST_INPUT"] = test["input"]
+        test_env["AOC_TEST_OUTPUT"] = test["output"]
+
+        try:
+            result = subprocess.run(
+                ["python", NOTEPAD_PATH],
+                capture_output=True, text=True,
+                env=test_env # Pass the custom environment to the subprocess
+            )
+
+            output = result.stdout.strip()
+            click.echo(output)
+            if result.stderr:
+                click.secho(result.stderr.strip(), fg='red')
+
+            if "✅ PASSED" in output:
+                passed_count += 1
+        except Exception as e:
+            logger.error(f"An unexpected error occurred running test #{i+1}: {e}")
+
+    color = "green" if passed_count == len(tests_to_run) else "red"
+    click.secho(f"\n--- Summary ---\n{passed_count} / {len(tests_to_run)} tests passed.", fg=color, bold=True)
 
 if __name__ == "__main__":
     cli()

@@ -1,14 +1,36 @@
 import logging
 from pathlib import Path
 import re
+import os
 from . import _utils
+
+# --- Test Mode Initialization ---
+# Check for environment variables to activate test mode.
+# This code runs once when the module is first imported.
+TEST_MODE = os.getenv("AOC_TEST_MODE") == "true"
+_test_input_data = os.getenv("AOC_TEST_INPUT")
+_test_expected_answer = os.getenv("AOC_TEST_OUTPUT")
 
 # --- CONTEXT VARIABLES ---
 year, day = _utils.get_latest_puzzle_date()
 part: int | None = None
 
-# --- PUBLIC FUNCTIONS ---
+# --- Internal Helper functions for Testing ---
+def _set_test_context(input_data: str, expected_answer: str):
+    """Sets the test data and enables test mode."""
+    global TEST_MODE, _test_input_data, _test_expected_answer
+    TEST_MODE = True
+    _test_input_data = input_data
+    _test_expected_answer = expected_answer
 
+def _reset_test_context():
+    """Clears test data and disables test mode."""
+    global TEST_MODE, _test_input_data, _test_expected_answer
+    TEST_MODE = False
+    _test_input_data = None
+    _test_expected_answer = None
+
+# --- PUBLIC FUNCTIONS ---
 def get_instructions() -> str:
     """
     Gets the puzzle instructions for the current context (year, day).
@@ -21,18 +43,32 @@ def get_instructions() -> str:
 def get_input() -> str:
     """
     Gets the puzzle input for the current context (year, day).
-
-    Returns:
-        A string containing the raw puzzle input.
+    In Test Mode, this returns the example input instead.
     """
+    logger = logging.getLogger(__name__)
+    if TEST_MODE:
+        logger.info("TEST MODE: Returning example input.")
+        return _test_input_data if _test_input_data is not None else ""
+
     return _utils.get_aoc_data(year, day, data_type="input")
 
 def submit(answer) -> str:
     """
     Submits an answer for the current puzzle context.
-    The 'aoc.part' variable must be set.
+    In Test Mode, this performs a local check against the expected answer.
     """
     logger = logging.getLogger(__name__)
+
+    if TEST_MODE:
+        logger.info(f"TEST MODE: Checking answer '{answer}' against expected '{_test_expected_answer}'.")
+        str_answer = str(answer)
+        str_expected = str(_test_expected_answer)
+
+        if str_answer == str_expected:
+            return "✅ PASSED"
+        else:
+            return f"❌ FAILED: Got '{str_answer}', but expected '{_test_expected_answer}'"
+
     if part not in [1, 2]:
         err_msg = "aoc.part must be set to 1 or 2 before submitting."
         logger.error(err_msg)
@@ -46,13 +82,14 @@ def submit(answer) -> str:
             logger.info("Auto-binding solution...")
             bind()
         return f"✅ {response_text}"
+
     elif "You don't seem to be solving the right level" in response_text:
-            logger.warning(f"Part {part} has already been completed.")
-            return f"✅ Part {part} has already been completed. The server did not accept the new submission."
+        logger.warning(f"Part {part} has already been completed.")
+        return f"✅ Part {part} has already been completed. The server did not accept the new submission."
+
     else:
         logger.warning(f"Answer is incorrect. Response: {response_text}")
         return f"❌ {response_text}"
-
 
 def bind(overwrite: bool = False):
     """
