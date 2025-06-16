@@ -7,11 +7,14 @@ import aoc
 import os
 import subprocess
 import time
+import shutil
 
 # --- PATHS & CONFIG ---
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-CONFIG_FILE_PATH = Path(__file__).parent.parent / "config.ini"
-LOGS_DIR = Path(__file__).parent.parent.parent / ".logs"
+CONFIG_FILE_PATH = PROJECT_ROOT / "env_src" / "config.ini"
+LOGS_DIR = PROJECT_ROOT / ".logs"
+CACHE_DIR = PROJECT_ROOT / ".cache"
+SOLUTIONS_DIR = PROJECT_ROOT / "solutions"
 NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"
 
 def setup_logging(verbose: bool):
@@ -62,6 +65,13 @@ def cli(verbose):
     A command-line tool for managing your Advent of Code environment.
     This tool helps you fetch puzzle data, submit answers, and manage solutions.
     """
+    required_dirs = [CACHE_DIR, LOGS_DIR, SOLUTIONS_DIR]
+    for directory in required_dirs:
+        directory.mkdir(exist_ok=True)
+        # Also ensure .gitkeep exists so the folder structure can be committed
+        gitkeep_path = directory / ".gitkeep"
+        if not gitkeep_path.exists():
+            gitkeep_path.touch()
     setup_logging(verbose)
 
 @cli.command()
@@ -176,6 +186,53 @@ def run(time_it):
             duration_ms = (end_time - start_time) * 1000
             # Use secho for colored output
             click.secho(f"\n⏱️ Execution time: {duration_ms:.2f} ms", fg="yellow")
+
+@cli.command(hidden=True)
+def nuke():
+    """
+    Deletes all cached data, logs, solutions, and config.
+
+    This is a destructive operation and cannot be undone.
+    """
+    logger = logging.getLogger(__name__)
+
+    dirs_to_clear = [CACHE_DIR, LOGS_DIR, SOLUTIONS_DIR]
+
+    click.secho("🔥 NUKE WARNING 🔥", fg="red", bold=True, blink=True)
+    click.echo("This command will permanently delete the CONTENTS of:")
+    click.echo(f"  - Cache: {CACHE_DIR}")
+    click.echo(f"  - Solutions: {SOLUTIONS_DIR}")
+    click.echo(f"  - Logs: {LOGS_DIR}")
+    click.echo(f"  - And your configuration file: {CONFIG_FILE_PATH}")
+
+    click.confirm("\nAre you absolutely sure you want to proceed?", abort=True)
+
+    logger.info("Proceeding with nuke operation...")
+
+    try:
+        for directory in dirs_to_clear:
+            if not directory.exists():
+                continue
+            logger.info(f"Clearing contents of {directory}...")
+            for item in directory.iterdir():
+                # IMPORTANT: Do not delete the .gitkeep file
+                if item.name == ".gitkeep":
+                    continue
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+
+        # Delete the config file
+        if CONFIG_FILE_PATH.exists():
+            CONFIG_FILE_PATH.unlink()
+            logger.info("Deleted configuration file.")
+
+        click.secho("\n✅ Environment has been wiped clean.", fg="green")
+        click.echo("Run 'aoc setup' to re-configure.")
+
+    except Exception as e:
+        logger.error(f"An error occurred during the nuke operation: {e}")
 
 if __name__ == "__main__":
     cli()
