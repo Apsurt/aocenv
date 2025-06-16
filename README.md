@@ -25,7 +25,7 @@ It provides a robust command-line interface (CLI) and a Python module to handle 
 
 ### 1. Installation
 
-First, clone the repository and set up the Python environment.
+First, fork the repository. Then clone it and set up the Python environment.
 
 ```bash
 # Clone your forked repository
