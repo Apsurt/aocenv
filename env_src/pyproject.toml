@@ -10,6 +10,9 @@ description = "A personalized environment for Advent of Code."
 requires-python = ">=3.8"
 dependencies = [
     "click>=8.1.8",
+    "colorlog>=6.9.0",
+    "html2text>=2024.2.26",
+    "requests>=2.32.4",
 ]
 
 [project.scripts]
