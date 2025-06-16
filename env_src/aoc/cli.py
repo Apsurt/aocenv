@@ -102,12 +102,18 @@ def setup():
             default=True
         )
 
-    # Save the cookie to the config file
+    auto_clear = click.confirm(
+            "\nAutomatically clear notepad.py after a successful bind?",
+            default=False
+        )
+
+    # Save the answers to the config file
     config = configparser.ConfigParser()
     config["user"] = {
-            "session_cookie": session_cookie,
-            "auto_bind": "true" if auto_bind else "false"
-        }
+        "session_cookie": session_cookie,
+        "auto_bind": "true" if auto_bind else "false",
+        "auto_clear_on_bind": "true" if auto_clear else "false"
+    }
 
     try:
         with open(CONFIG_FILE_PATH, "w") as config_file:
@@ -417,7 +423,7 @@ def start(force):
     latest_year, latest_day = aoc._utils.get_latest_puzzle_date()
 
     # 3. Define the boilerplate template
-    boilerplate =f"""import aoc
+    boilerplate = f"""import aoc
 
 # --- Context Setting ---
 # By default, the environment will use the latest puzzle.
@@ -458,6 +464,12 @@ answer = your_function_name()
         click.secho(f"✅ notepad.py has been populated with the boilerplate for {latest_year}-{latest_day:02d}.", fg="green")
     except Exception as e:
         logger.error(f"Failed to write boilerplate to notepad.py: {e}")
+
+@cli.command()
+def clear():
+    """Clears all content from the notepad.py file."""
+    aoc.clear()
+    click.secho("✅ notepad.py has been cleared.", fg="green")
 
 if __name__ == "__main__":
     cli()

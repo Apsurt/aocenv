@@ -80,7 +80,6 @@ def bind(overwrite: bool = False):
         return
 
     try:
-
         content = source_path.read_text()
         bind_pattern = re.compile(r"^\s*aoc\.bind\s*\(.*\)\s*$", re.MULTILINE)
         cleaned_content = re.sub(bind_pattern, "", content).rstrip()
@@ -88,5 +87,18 @@ def bind(overwrite: bool = False):
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest_path.write_text(cleaned_content)
         logger.info(f"Solution successfully saved to {dest_path}")
+
+        if _utils.get_bool_config_setting("auto_clear_on_bind"):
+            logger.info("Auto-clearing notepad.py...")
+            clear()
+
     except Exception as e:
         logger.error(f"Failed to bind solution: {e}")
+
+def clear():
+    """Clears all content from the notepad.py file."""
+    logger = logging.getLogger(__name__)
+    notepad_path = _utils.PROJECT_ROOT / "notepad.py"
+    if notepad_path.exists():
+        notepad_path.write_text("")
+        logger.info("notepad.py has been cleared.")
