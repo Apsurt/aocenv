@@ -342,4 +342,4 @@ def git_commit_solution(year: int, day: int, part: int):
     except subprocess.CalledProcessError as e:
         logger.error(f"Auto-commit failed: A git command failed to execute.\nError: {e.stderr}")
     except Exception as e:
-        logger.error(f"An unexpected error occurred during auto-commit: {e}"
+        logger.error(f"An unexpected error occurred during auto-commit: {e}")
