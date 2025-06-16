@@ -109,5 +109,27 @@ def instructions(year, day):
     except Exception as e:
         click.secho(f"❌ Error fetching instructions: {e}", fg="red")
 
+@cli.command()
+@click.option("-y", "--year", default=None, type=int, help="The puzzle year. Defaults to latest.")
+@click.option("-d", "--day", default=None, type=int, help="The puzzle day. Defaults to latest.")
+def input(year, day):
+    """
+    Fetches and displays the puzzle input for a given day.
+    """
+    # Override the default context if flags are provided
+    if year:
+        aoc.year = year
+    if day:
+        aoc.day = day
+
+    logger = logging.getLogger(__name__)
+    logger.info(f"Getting input for {aoc.year}-{aoc.day}")
+    try:
+        input_text = aoc.get_input()
+        click.echo("--- Puzzle Input ---")
+        click.echo(input_text)
+    except Exception as e:
+        logger.error(f"Failed to get input: {e}")
+
 if __name__ == "__main__":
     cli()

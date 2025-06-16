@@ -15,3 +15,12 @@ def get_instructions() -> str:
         A formatted string of the puzzle instructions for the terminal.
     """
     return _utils.get_aoc_data(year, day, data_type="instructions")
+
+def get_input() -> str:
+    """
+    Gets the puzzle input for the current context (year, day).
+
+    Returns:
+        A string containing the raw puzzle input.
+    """
+    return _utils.get_aoc_data(year, day, data_type="input")
