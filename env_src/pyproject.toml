@@ -9,6 +9,7 @@ authors = [{ name = "Your Name", email = "your@email.com" }]
 description = "A personalized environment for Advent of Code."
 requires-python = ">=3.8"
 dependencies = [
+    "beautifulsoup4>=4.13.4",
     "click>=8.1.8",
     "colorlog>=6.9.0",
     "html2text>=2024.2.26",

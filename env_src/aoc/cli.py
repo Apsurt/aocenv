@@ -82,9 +82,17 @@ def setup():
     # Prompt for the cookie securely (hides input)
     session_cookie = click.prompt("\nPlease paste your session cookie", hide_input=True)
 
+    auto_bind = click.confirm(
+            "\nAutomatically save your code (`bind`) on a correct submission?",
+            default=True
+        )
+
     # Save the cookie to the config file
     config = configparser.ConfigParser()
-    config["user"] = {"session_cookie": session_cookie}
+    config["user"] = {
+            "session_cookie": session_cookie,
+            "auto_bind": "true" if auto_bind else "false"
+        }
 
     try:
         with open(CONFIG_FILE_PATH, "w") as config_file:

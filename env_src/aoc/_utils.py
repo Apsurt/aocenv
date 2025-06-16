@@ -4,6 +4,7 @@ import html2text
 from pathlib import Path
 import datetime
 import logging
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,14 @@ def get_session_cookie() -> str | None:
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE_PATH)
     return config.get("user", "session_cookie", fallback=None)
+
+def get_bool_config_setting(key: str, default: bool = False) -> bool:
+    """Reads a boolean setting from the [user] section of the config file."""
+    if not CONFIG_FILE_PATH.exists():
+        return default
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE_PATH)
+    return config.getboolean("user", key, fallback=default)
 
 def get_aoc_data(year: int, day: int, data_type: str) -> str:
     """
@@ -103,3 +112,30 @@ def get_latest_puzzle_date() -> tuple[int, int]:
         return year, 25
 
     return year, day
+
+def post_answer(year: int, day: int, part: int, answer) -> str:
+    """
+    Submits an answer for a given puzzle.
+    Parses the response to determine if the answer was correct.
+    """
+    session_cookie = get_session_cookie()
+    if not session_cookie:
+        raise ConnectionError("Session cookie not found. Please run 'aoc setup'.")
+
+    url = f"{AOC_BASE_URL}/{year}/day/{day}/answer"
+    headers = {"User-Agent": "aoc-env by your-github-username (submitting answer)"}
+    cookies = {"session": session_cookie}
+    payload = {"level": part, "answer": answer}
+
+    logger.info(f"Submitting answer for {year}-{day} Part {part}: {answer}")
+    response = requests.post(url, headers=headers, cookies=cookies, data=payload)
+    response.raise_for_status()
+
+    # Parse the response HTML to find the feedback message
+    soup = BeautifulSoup(response.text, "html.parser")
+    main_article = soup.find("article")
+    if not main_article:
+        return "Could not parse response from server."
+
+    # Return the first paragraph of the response text
+    return main_article.p.get_text()
