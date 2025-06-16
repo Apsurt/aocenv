@@ -282,3 +282,22 @@ def scrape_day_page_for_answers(year: int, day: int) -> dict[int, str]:
                 logger.info(f"Found correct answer for Part {part}: {answers[part]}")
 
     return answers
+
+def _read_tests_cache(year: int, day: int) -> dict:
+    """Reads the tests.json cache for a given day."""
+    cache_file = CACHE_DIR / str(year) / f"{day:02d}" / "tests.json"
+    if not cache_file.exists():
+        return {"part_1": [], "part_2": []}
+    with open(cache_file, 'r') as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return {"part_1": [], "part_2": []} # Return default on file corruption
+
+def _write_tests_cache(year: int, day: int, data: dict):
+    """Writes test case data to the tests.json cache for a given day."""
+    cache_dir = CACHE_DIR / str(year) / f"{day:02d}"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / "tests.json"
+    with open(cache_file, 'w') as f:
+        json.dump(data, f, indent=2)

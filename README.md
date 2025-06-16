@@ -119,11 +119,21 @@ aoc load 1 --year 2024 --day 1
 ```
 
 ## 💾 Custom Templates
-You can save the contents of `notepad.py` as a named template to reuse later. This is great for setting up common scenarios, like graph traversal or grid manipulation problems. All templates are stored in the `.templates/` directory.
-* **Save a template:** `aoc template save <template_name>`
+
+You can save the contents of `notepad.py` as a named template to reuse later. This is great for setting up common scenarios, like graph traversal or grid manipulation problems. The environment comes with a standard `default` template, which you can customize to your liking by running `aoc template save default --force`. All templates are stored in the `.templates/` directory.
+
+* **Save a template:** `aoc template save <template_name> [-f]`
 * **List all templates:** `aoc template list`
-* **Load a template:** `aoc template load <template_name>`
+* **Load a template:** `aoc template load <template_name> [-f]`
 * **Delete a template:** `aoc template delete <template_name>`
+
+## 🧪 Test Case Management
+The `test` command group allows you to manage local test cases for each puzzle. Instead of relying on a fragile scraper, you can manually add the examples from the puzzle description once. This gives you a reliable set of tests to run your code against while you develop. Test cases are stored in `.cache/<year>/<day>/tests.json`.
+
+* **Add a test interactively:** `aoc test add`
+* **List saved tests:** `aoc test list`
+* **Delete a test:** `aoc test delete <part> <index>`
+* **Run tests:** `aoc test run`
 
 ## 📖 Command Reference
 
@@ -132,7 +142,7 @@ You can save the contents of `notepad.py` as a named template to reuse later. Th
 | `aoc setup`                  | Runs the interactive wizard to configure your session cookie and preferences.                                  |
 | `aoc sync [--force]`         | Scrapes your progress from AoC, caching all puzzle texts and answers. Can only be run once/day unless forced. |
 | `aoc stats`                  | Launches the interactive, scrollable TUI to view your progress stats.                                          |
-| `aoc start [-f]`             | Populates `notepad.py` with a boilerplate template. `-f` forces overwrite if not empty.                      |
+| `aoc start [NAME] [-f]`             | Populates `notepad.py` with a template. Defaults to the `default` template if `NAME` is omitted. `-f` forces overwrite.                      |
 | `aoc text [opts]`            | Displays the formatted puzzle description.                                                                     |
 | `aoc input [opts]`           | Displays the raw puzzle input.                                                                                 |
 | `aoc run [-t]`               | Executes the `notepad.py` script. `-t` times the execution.                                                    |
@@ -140,6 +150,7 @@ You can save the contents of `notepad.py` as a named template to reuse later. Th
 | `aoc list`                   | Lists all your archived solutions from the `solutions/` directory.                                             |
 | `aoc clear`                  | Clears all content from `notepad.py`.                                                                        |
 | `aoc template <sub-cmd>` | Manages custom templates (`save`, `load`, `list`, `delete`). |
+| `aoc test <sub-cmd>` | Manages test cases for puzzles (`add`, `list`, `delete`, `run`). |
 
 **Options for `text`, `input`, and `load`:**
 * `--year YYYY`: Specify the puzzle year.

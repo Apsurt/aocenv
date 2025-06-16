@@ -543,5 +543,107 @@ def template_delete(name):
     else:
         click.echo("Delete operation cancelled.")
 
+@cli.group()
+def test():
+    """Manages and runs test cases for puzzles."""
+    pass
+
+@test.command(name="add")
+@click.option("-y", "--year", default=None, type=int, help="Puzzle year. Defaults to context.")
+@click.option("-d", "--day", default=None, type=int, help="Puzzle day. Defaults to context.")
+@click.option("-p", "--part", type=click.Choice(['1', '2']), prompt="Which part is this test for? (1 or 2)")
+def test_add(year, day, part):
+    """Interactively add a new test case."""
+    target_year = year if year is not None else aoc.year
+    target_day = day if day is not None else aoc.day
+    part_key = f"part_{part}"
+
+    click.echo("--- Adding New Test Case ---")
+    click.echo(f"For: Year {target_year}, Day {target_day}, Part {part}")
+
+    click.echo("\nPaste or type your test input. When you are done, save and close the editor.")
+    click.echo("(This will open your default command-line editor: nano, vim, etc.)")
+    # Using click.edit() for multiline input
+    test_input = click.edit()
+
+    if test_input is None:
+        click.echo("No input provided. Aborting.")
+        return
+
+    test_output = click.prompt("What is the expected output for this test case?")
+
+    # Read existing tests, add the new one, and write back
+    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+    tests_data[part_key].append({"input": test_input.strip(), "output": test_output.strip()})
+    aoc._utils._write_tests_cache(target_year, target_day, tests_data)
+
+    click.secho("\n✅ Test case added successfully!", fg="green")
+
+@test.command(name="list")
+@click.option("-y", "--year", default=None, type=int, help="Puzzle year. Defaults to context.")
+@click.option("-d", "--day", default=None, type=int, help="Puzzle day. Defaults to context.")
+def test_list(year, day):
+    """Lists saved test cases for a given day."""
+    target_year = year if year is not None else aoc.year
+    target_day = day if day is not None else aoc.day
+
+    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+
+    click.secho(f"--- Test Cases for {target_year}-{target_day:02d} ---", bold=True)
+    total_tests = len(tests_data["part_1"]) + len(tests_data["part_2"])
+    if total_tests == 0:
+        click.echo("No test cases found for this day.")
+        click.echo("Add one with 'aoc test add'.")
+        return
+
+    for part_num in [1, 2]:
+        part_key = f"part_{part_num}"
+        if tests_data[part_key]:
+            click.secho(f"\nPart {part_num}:", fg="yellow")
+            for i, test in enumerate(tests_data[part_key]):
+                click.secho(f"  Test #{i+1}:", bold=True)
+                click.echo("    --- Input ---")
+                # Indent the input block for readability
+                indented_input = "    " + "\n    ".join(test['input'].splitlines())
+                click.secho(indented_input, fg="bright_black")
+                click.echo(f"    --- Expected Output ---\n    {test['output']}")
+
+@test.command(name="delete")
+@click.argument('part', type=click.Choice(['1', '2']))
+@click.argument('index', type=int)
+@click.option("--year", default=None, type=int, help="Puzzle year. Defaults to context.")
+@click.option("--day", default=None, type=int, help="Puzzle day. Defaults to context.")
+def test_delete(part, index, year, day):
+    """Deletes a specific test case by its index."""
+    target_year = year if year is not None else aoc.year
+    target_day = day if day is not None else aoc.day
+    part_key = f"part_{part}"
+    list_index = index - 1
+
+    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+
+    # --- Validation and Safety Checks ---
+    if not (0 <= list_index < len(tests_data[part_key])):
+        click.secho(f"Error: Test #{index} for Part {part} does not exist.", fg="red")
+        return
+
+    test_to_delete = tests_data[part_key][list_index]
+
+    click.secho(f"You are about to delete Test #{index} for Part {part}:", bold=True)
+    click.echo("    --- Input ---")
+    indented_input = "    " + "\n    ".join(test_to_delete['input'].splitlines())
+    click.secho(indented_input, fg="bright_black")
+    click.echo(f"    --- Expected Output ---\n    {test_to_delete['output']}")
+
+    if not click.confirm("\nAre you sure you want to delete this test case?"):
+        click.echo("Delete operation cancelled.")
+        return
+
+    # --- Deletion Logic ---
+    tests_data[part_key].pop(list_index)
+    aoc._utils._write_tests_cache(target_year, target_day, tests_data)
+
+    click.secho(f"✅ Test #{index} for Part {part} has been deleted.", fg="green")
+
 if __name__ == "__main__":
     cli()
