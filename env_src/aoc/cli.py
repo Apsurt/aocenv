@@ -8,6 +8,10 @@ import os
 import subprocess
 import time
 import shutil
+import datetime
+import json
+import shutil
+from .stats_viewer import StatsApp
 
 # --- PATHS & CONFIG ---
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -16,6 +20,7 @@ LOGS_DIR = PROJECT_ROOT / ".logs"
 CACHE_DIR = PROJECT_ROOT / ".cache"
 SOLUTIONS_DIR = PROJECT_ROOT / "solutions"
 NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"
+PROGRESS_JSON_PATH = PROJECT_ROOT / "progress.json"
 
 def setup_logging(verbose: bool):
     """Configures file and console logging."""
@@ -280,6 +285,69 @@ def load(part, year, day, force):
         click.secho(f"✅ Successfully loaded Part {part} for {target_year}-{target_day:02d} into notepad.py.", fg="green")
     except Exception as e:
         logger.error(f"Failed to load solution into notepad.py: {e}")
+
+@cli.command()
+def sync():
+    """
+    Scrapes AoC website for your progress and caches all puzzle texts.
+
+    This is a long-running command that makes many requests. Use it sparingly.
+    """
+    logger = logging.getLogger(__name__)
+    click.secho("Starting full sync with Advent of Code website...", fg="yellow")
+    click.echo("This may take several minutes. Please be patient.")
+
+    now = datetime.datetime.now()
+    latest_year_to_check = now.year if now.month == 12 else now.year - 1
+
+    years_to_sync = range(2015, latest_year_to_check + 1)
+    full_progress = {}
+
+    with click.progressbar(
+            years_to_sync, label="Syncing years...", length=len(years_to_sync)
+        ) as progress_bar:
+            for year in progress_bar:
+                try:
+                    year_progress = aoc._utils.scrape_year_progress(year)
+                    if not year_progress:
+                        continue # Skip years with no participation
+
+                    full_progress[str(year)] = year_progress
+
+                    # Fetch texts for every day the user has participated in
+                    for day_str in year_progress.keys():
+                        day = int(day_str)
+                        logger.info(f"Checking {year}-{day:02d}...")
+                        aoc._utils.get_aoc_data(year, day, "instructions")
+
+                except Exception as e:
+                    logger.error(f"Failed to sync year {year}: {e}")
+
+    # Save the aggregated progress data
+    with open(PROGRESS_JSON_PATH, 'w') as f:
+        json.dump(full_progress, f, indent=2)
+
+    click.secho("\n✅ Sync complete!", fg="green")
+    click.echo(f"Your progress has been saved to {PROGRESS_JSON_PATH}")
+    click.echo("You can now use the 'aoc stats' command.")
+
+@cli.command()
+def stats():
+    """
+    Launches an interactive viewer for your puzzle completion stats.
+    """
+    logger = logging.getLogger(__name__)
+    if not PROGRESS_JSON_PATH.exists():
+        click.secho("No progress data found.", fg="red")
+        click.echo("Please run 'aoc sync' first to gather your data.")
+        return
+
+    with open(PROGRESS_JSON_PATH, 'r') as f:
+        progress_data = json.load(f)
+
+    # Launch the Textual app, passing the progress data to it
+    app = StatsApp(progress_data=progress_data)
+    app.run()
 
 if __name__ == "__main__":
     cli()

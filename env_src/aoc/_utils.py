@@ -6,6 +6,7 @@ import datetime
 import logging
 from bs4 import BeautifulSoup
 import json
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -186,3 +187,59 @@ def post_answer(year: int, day: int, part: int, answer) -> str:
     _write_answers_cache(year, day, cached_data)
 
     return response_text
+
+def scrape_year_progress(year: int) -> dict[int, int]:
+    """
+    Scrapes the main page of a given year to get puzzle completion status.
+
+    Returns:
+        A dictionary mapping each day (int) to its star count (0, 1, or 2).
+    """
+    logger.info(f"Scraping progress for year {year}...")
+    session_cookie = get_session_cookie()
+    if not session_cookie:
+        raise ConnectionError("Session cookie not found. Please run 'aoc setup'.")
+
+    url = f"{AOC_BASE_URL}/{year}"
+    headers = {"User-Agent": "aoc-env by your-github-username (scraping progress)"}
+    cookies = {"session": session_cookie}
+
+    response = requests.get(url, headers=headers, cookies=cookies)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    progress = {}
+
+    calendar = soup.find("pre", class_="calendar")
+    if not calendar:
+        logger.warning(f"Could not find calendar element for year {year}.")
+        return {}
+
+    # Find all the day links within the calendar
+    day_links = calendar.find_all("a")
+    if not day_links:
+        return {} # No participation this year
+
+    for link in day_links:
+        label = link.get("aria-label", "")
+        day_span = link.find("span", class_="calendar-day")
+
+        # Skip any links that aren't properly formed day entries
+        if not label or not day_span:
+            continue
+
+        try:
+            day = int(day_span.get_text().strip())
+
+            if "two stars" in label:
+                stars = 2
+            elif "one star" in label:
+                stars = 1
+            else:
+                stars = 0
+
+            progress[day] = stars
+        except (ValueError, TypeError):
+            continue
+
+    return progress
