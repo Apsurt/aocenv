@@ -1,6 +1,9 @@
 import logging
 import re
 import os
+import time
+from contextlib import contextmanager
+import click
 from . import _utils
 
 # --- Test Mode Initialization ---
@@ -136,3 +139,20 @@ def clear():
     if notepad_path.exists():
         notepad_path.write_text("")
         logger.info("notepad.py has been cleared.")
+
+@contextmanager
+def timed():
+    """A context manager to time a block of code, activated by the -t flag in 'aoc run'."""
+    should_time = os.getenv("AOC_TIME_IT") == "true"
+    start_time = 0
+
+    if should_time:
+        start_time = time.perf_counter()
+
+    try:
+        yield
+    finally:
+        if should_time:
+            end_time = time.perf_counter()
+            duration_ms = (end_time - start_time) * 1000
+            click.secho(f"\n⏱️  Execution time: {duration_ms:.2f} ms", fg="yellow")

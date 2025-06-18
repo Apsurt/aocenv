@@ -170,7 +170,7 @@ def input():
         logger.error(f"Failed to get input: {e}")
 
 @cli.command()
-@click.option('-t', '--time', 'time_it', is_flag=True, help="Time the execution of the script.")
+@click.option('-t', '--time', 'time_it', is_flag=True, help="Time the execution of the script's core logic.")
 def run(time_it):
     """Executes the code in the main notepad.py file."""
     logger = logging.getLogger(__name__)
@@ -179,22 +179,17 @@ def run(time_it):
         logger.error(f"Notepad file not found at: {NOTEPAD_PATH}")
         return
 
-    start_time = 0
+    env = os.environ.copy()
     if time_it:
-        start_time = time.perf_counter()
+        env["AOC_TIME_IT"] = "true"
 
     logger.info(f"Executing {NOTEPAD_PATH} with context {aoc.year}-{aoc.day}...")
     try:
-        subprocess.run(["python", NOTEPAD_PATH], check=True)
+        subprocess.run(["python", NOTEPAD_PATH], check=True, env=env)
     except subprocess.CalledProcessError as e:
         logger.error(f"notepad.py exited with an error (return code {e.returncode}).")
     except Exception as e:
         logger.error(f"An unexpected error occurred while running notepad.py: {e}")
-    finally:
-        if time_it:
-            end_time = time.perf_counter()
-            duration_ms = (end_time - start_time) * 1000
-            click.secho(f"\n⏱️ Execution time: {duration_ms:.2f} ms", fg="yellow")
 
 @cli.command()
 @click.argument('part', type=click.Choice(['1', '2']))

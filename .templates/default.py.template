@@ -12,17 +12,18 @@ import aoc
 puzzle_input = aoc.get_input()
 
 # Your solution logic here...
-def your_function_name():
+def solve():
     return
 
-answer = your_function_name()
+with aoc.timed():
+    answer = solve()
 
 # --- Submission ---
 # After solving, uncomment the following line and specify the part
 # number (1 or 2) to submit your answer.
 
-# if answer is not None:
-#     print(aoc.submit(answer, part=1))
+if answer is not None:
+    print(aoc.submit(answer, part=1))
 
 # --- Binding ---
 # To save your solution, you can use aoc.bind(part=1)
