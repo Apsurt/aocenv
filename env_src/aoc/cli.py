@@ -636,6 +636,27 @@ def rm(clear_all):
     Launches an interactive prompt to select what to clear.
     Use --all to clear everything non-interactively.
     """
+    selected_ids = []
+
+    if not clear_all:
+        click.echo("Select items to clear. (e.g., '1,3,5' or 'all')")
+        for i, (display_name, _, _) in enumerate(CLEARABLE_ITEMS, 1):
+            click.echo(f"  {click.style(str(i), fg='yellow')}: {display_name}")
+
+        choice_str = click.prompt("\nEnter the numbers of items to clear, separated by commas")
+
+        if choice_str.lower().strip() == 'all':
+            clear_all = True
+        else:
+            id_map = {i: item[1] for i, item in enumerate(CLEARABLE_ITEMS, 1)}
+            try:
+                indices = [int(i.strip()) for i in choice_str.split(',') if i.strip()]
+                for i in indices:
+                    if i in id_map and id_map[i] not in selected_ids:
+                        selected_ids.append(id_map[i])
+            except ValueError:
+                click.secho("Invalid input. Please enter numbers separated by commas.", fg="red")
+                return
 
     if clear_all:
         click.secho("You are about to permanently delete all cached data, logs, solutions, and configs.", fg="red", bold=True)
@@ -644,28 +665,6 @@ def rm(clear_all):
             return
         all_item_ids = [item[1] for item in CLEARABLE_ITEMS]
         _perform_clear(all_item_ids)
-        return
-
-    # --- Interactive Deletion Prompt ---
-    click.echo("Select items to clear. (e.g., '1,3,5' or 'all')")
-    for i, (display_name, _, _) in enumerate(CLEARABLE_ITEMS, 1):
-        click.echo(f"  {click.style(str(i), fg='yellow')}: {display_name}")
-
-    choice_str = click.prompt("\nEnter the numbers of items to clear, separated by commas")
-
-    if choice_str.lower().strip() == 'all':
-        return rm(clear_all=True)
-
-    selected_ids = []
-    id_map = {i: item[1] for i, item in enumerate(CLEARABLE_ITEMS, 1)}
-
-    try:
-        indices = [int(i.strip()) for i in choice_str.split(',') if i.strip()]
-        for i in indices:
-            if i in id_map and id_map[i] not in selected_ids:
-                selected_ids.append(id_map[i])
-    except ValueError:
-        click.secho("Invalid input. Please enter numbers separated by commas.", fg="red")
         return
 
     if not selected_ids:
