@@ -11,6 +11,7 @@ It provides a robust command-line interface (CLI) and a Python module to handle 
 * **Local Caching**: All puzzle inputs, texts, answers, and submissions are cached locally. This makes the tool incredibly fast and respects the AoC servers by minimizing requests.
 * **Full CLI Control**: Manage your entire workflow from the terminal with intuitive commands.
 * **Boilerplate Generation**: Kickstart new puzzles instantly with the `aoc start` command.
+* **Persistent Context**: Set your target puzzle once with `aoc context set` and all commands will automatically use that year and day.
 * **Interactive Stats Viewer**: Get a beautiful, scrollable overview of your progress across all years with `aoc stats`.
 * **Solution Management**: Automatically or manually archive your code with `aoc.bind()` and load it back into your workspace with `aoc load`.
 * **Safe & Robust**: Built-in safety checks, confirmation prompts for destructive actions.
@@ -32,7 +33,7 @@ First, fork the repository. Then clone it and set up the Python environment.
 
 ```bash
 # Clone your forked repository
-git clone https://github.com/Apsurt/aoc-env.git
+git clone [https://github.com/Apsurt/aoc-env.git](https://github.com/Apsurt/aoc-env.git)
 cd aoc-env
 
 # Create and activate a virtual environment using uv
@@ -41,7 +42,6 @@ source .venv/bin/activate
 
 # Install the project and its dependencies in editable mode
 uv pip install -e ./env_src/
-
 ```
 
 ### 2. Configuration
@@ -58,65 +58,69 @@ The wizard will guide you through finding your cookie in your browser and will a
 
 Here is the typical workflow for solving a puzzle from start to finish.
 
-1. Start a New Puzzle
+### 1. Set Your Context
 
-Begin your day by generating a fresh template in your workspace. This populates notepad.py with a useful starting structure.
+Before you begin, tell the environment which puzzle you want to work on. This context is saved and will be used by all subsequent commands.
+
+```bash
+# Set the context to December 1st, 2024
+aoc context set --year 2024 --day 1
+
+# You can check the current context anytime
+aoc context show
+```
+
+### 2. Start a New Puzzle
+
+Generate a fresh template in your workspace. This populates `notepad.py` with a useful starting structure.
 
 ```bash
 aoc start
 ```
 
-2. Get Oriented
+### 3. Get Oriented
 
-Read the puzzle text and check the input format directly from your terminal.
+Read the puzzle text and check the input format directly from your terminal. These commands automatically use the context you set in step 1.
 
 ```bash
-# Get the puzzle description (defaults to latest day)
+# Get the puzzle description for the current context
 aoc text
 
-# Get the raw puzzle input
+# Get the raw puzzle input for the current context
 aoc input
-
-# Or get data for specific day
-aoc text --year 2024 --day 1
-
-# Get the raw puzzle input
-aoc input --year 2024 --day 1
 ```
 
-3. Write Your Solution
+### 4. Write Your Solution
 
-Open `notepad.py` in your favorite editor. The file is already set up for you.
+Open `notepad.py` in your favorite editor.
+- The context is already set, so `aoc.get_input()` will fetch the correct data.
+- Write your code and assign your final calculation to the `answer` variable.
 
--   Uncomment and set `aoc.year`, `aoc.day`, and `aoc.part`.
--   Uncomment `puzzle_input = aoc.get_input()`.
--   Write your code and assign your final calculation to the `answer` variable.
+### 5. Run and Test
 
-4. Run and Test
-
-Execute your code using the run command. Use the -t flag to time its execution.
+Execute your code using the `run` command. Use the `-t` flag to time its execution.
 
 ```bash
 aoc run -t
 ```
 
-5. Submit and Archive
+### 6. Submit and Archive
 
-Once you have an answer, uncomment the `print(aoc.submit(answer))` line in `notepad.py` and run your code again.
+Once you have an answer, uncomment the `print(aoc.submit(answer, part=...))` line in `notepad.py`, specify the correct part number (1 or 2), and run your code again.
 
 ```bash
 aoc run
 ```
 
-If your answer is correct, your solution will be automatically bound (if you enabled it during setup). If not, you can add `aoc.bind()` to the end of your script and run it one last time to save it.
+If your answer is correct, your solution will be automatically bound (if you enabled it during setup). If not, you can add `aoc.bind(part=1)` to the end of your script and run it one last time to save it.
 
-6. Start Part 2
+### 7. Start Part 2
 
-To start the next part, you can clear your workspace with aoc clear or load your Part 1 solution back into the notepad to modify it.
+To start the next part, you can clear your workspace with `aoc clear` or load your Part 1 solution back into the notepad to modify it.
 
 ```bash
-# Load your Part 1 solution for Day 1 of 2024 into notepad.py
-aoc load 1 --year 2024 --day 1
+# Load your Part 1 solution for the current context into notepad.py
+aoc load 1
 ```
 
 ## 💾 Custom Templates
@@ -138,46 +142,39 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 
 ## 📖 Command Reference
 
-| Command                      | Description                                                                                                    |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `aoc setup`                  | Runs the interactive wizard to configure your session cookie and preferences (auto-bind, auto-clear, auto-commit).                                  |
-| `aoc sync [--force]`         | Scrapes your progress from AoC, caching all puzzle texts and answers. Can only be run once/day unless forced. |
-| `aoc stats`                  | Launches the interactive, scrollable TUI to view your progress stats.                                          |
-| `aoc start [NAME] [-f]`             | Populates `notepad.py` with a template. Defaults to the `default` template if `NAME` is omitted. `-f` forces overwrite.                      |
-| `aoc text [opts]`            | Displays the formatted puzzle description.                                                                     |
-| `aoc input [opts]`           | Displays the raw puzzle input.                                                                                 |
-| `aoc run [-t]`               | Executes the `notepad.py` script. `-t` times the execution.                                                    |
-| `aoc load <p> [opts] [-f]`   | Loads a saved solution into `notepad.py`. `<p>` is part 1 or 2. `-f` forces overwrite.                        |
-| `aoc list`                   | Lists all your archived solutions from the `solutions/` directory.                                             |
-| `aoc clear`                  | Clears all content from `notepad.py`.                                                                        |
+| Command | Description |
+| --- | --- |
+| `aoc setup` | Runs the interactive wizard to configure your session cookie and preferences. |
+| `aoc context <sub-cmd>` | Manages the persistent puzzle context (`set`, `show`, `clear`). |
+| `aoc sync [--force]` | Scrapes your progress from AoC, caching all puzzle texts and answers. |
+| `aoc stats` | Launches the interactive, scrollable TUI to view your progress stats. |
+| `aoc start [NAME] [-f]` | Populates `notepad.py` with a template. Defaults to `default`. |
+| `aoc text` | Displays the formatted puzzle description for the current context. |
+| `aoc input` | Displays the raw puzzle input for the current context. |
+| `aoc run [-t]` | Executes the `notepad.py` script. `-t` times the execution. |
+| `aoc load <p> [-f]` | Loads a saved solution for the current context into `notepad.py`. `<p>` is part 1 or 2. |
+| `aoc list` | Lists all your archived solutions from the `solutions/` directory. |
+| `aoc clear` | Clears all content from `notepad.py`. |
 | `aoc template <sub-cmd>` | Manages custom templates (`save`, `load`, `list`, `delete`). |
 | `aoc test <sub-cmd>` | Manages test cases for puzzles (`add`, `list`, `delete`, `run`). |
 
-**Options for `text`, `input`, and `load`:**
-* `--year YYYY`: Specify the puzzle year.
-* `--day DD`: Specify the puzzle day.
-* If omitted, commands default to the latest puzzle date.
-
 ## 🐍 Module Reference (`aoc`)
 
+These functions are available within your `notepad.py` script after `import aoc`. The `year` and `day` are determined by the context you set via the CLI.
 
-These functions and variables are available within your `notepad.py` script after `import aoc`.
-
-| Member                | Description                                                                                                 |
-| --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `aoc.year = YYYY`     | Sets the year context for all subsequent `aoc` functions.                                                     |
-| `aoc.day = DD`        | Sets the day context.                                                                                       |
-| `aoc.part = P`        | Sets the part context (1 or 2). **Required** for `submit()` and `bind()`.                                    |
-| `aoc.get_input()`     | Returns the puzzle input as a string for the current context.                                               |
-| `aoc.submit(answer)`  | Submits your `answer`. Returns a formatted string with the server's response. Caches submissions.             |
-| `aoc.bind(overwrite=False)`  | Archives `notepad.py`. Can trigger an auto-commit and auto-clear. Cleans itself from the saved code. `ow=True` overwrites. |
-| `aoc.clear()`         | Clears all content from `notepad.py`.                                                                       |
+| Member | Description |
+| --- | --- |
+| `aoc.get_input()` | Returns the puzzle input as a string for the current context. |
+| `aoc.submit(answer, part=P)` | Submits your `answer` for Part `P` (1 or 2). Returns a formatted string with the server's response. |
+| `aoc.bind(part=P, overwrite=F)` | Archives `notepad.py` for Part `P`. Can trigger auto-commit and auto-clear. `F` is `True` or `False`. |
+| `aoc.clear()` | Clears all content from `notepad.py`. |
 
 ## 📁 Project Structure
 
 ```
 .
 ├── .cache/            # Caches all puzzle data and answers
+├── .context.json      # Stores your current puzzle context (year, day)
 ├── .logs/             # Stores detailed log files
 ├── .venv/             # Your Python virtual environment
 ├── env_src/           # All the application source code
@@ -186,7 +183,6 @@ These functions and variables are available within your `notepad.py` script afte
 ├── .gitignore         # Standard git ignore file
 ├── notepad.py         # Your main workspace for solving puzzles
 └── README.md          # This file
-
 ```
 
 ## 💡 Future Ideas
