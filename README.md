@@ -145,7 +145,7 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 | --- | --- |
 | `aoc setup` | Runs the interactive wizard to configure your session cookie and preferences. |
 | `aoc context <sub-cmd>` | Manages the persistent puzzle context (`set`, `show`, `clear`). |
-| `aoc sync [--force]` | Scrapes your progress from AoC, caching all puzzle texts and answers. |
+| `aoc sync` | Scrapes your star progress from AoC. |
 | `aoc stats` | Shows table of all your stars to check your progress stats. |
 | `aoc start [NAME] [-f]` | Populates `notepad.py` with a template. Defaults to `default`. |
 | `aoc text` | Displays the formatted puzzle description for the current context. |

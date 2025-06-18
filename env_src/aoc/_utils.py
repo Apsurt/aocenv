@@ -18,6 +18,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 CACHE_DIR = PROJECT_ROOT / ".cache"
 CONFIG_FILE_PATH = Path(__file__).parent.parent / "config.ini"
 CONTEXT_FILE_PATH = PROJECT_ROOT / ".context.json"
+PROGRESS_JSON_PATH = PROJECT_ROOT / "progress.json"
 AOC_BASE_URL = "https://adventofcode.com"
 
 def read_context() -> tuple[int, int] | None:
@@ -122,6 +123,33 @@ def get_aoc_data(year: int, day: int, data_type: str) -> str:
     logger.info(f"Saving {data_type} for {year}-{day} to cache.\n")
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     cache_file.write_text(content)
+
+    # After fetching, check if we should also cache answers for solved puzzles
+    try:
+        if PROGRESS_JSON_PATH.exists():
+            with open(PROGRESS_JSON_PATH, 'r') as f:
+                progress_data = json.load(f).get("progress", {})
+
+            stars = progress_data.get(str(year), {}).get(str(day), 0)
+
+            if stars > 0:
+                answers_cache = _read_answers_cache(year, day)
+                part1_answered = answers_cache.get("part_1", {}).get("correct_answer") is not None
+                part2_answered = answers_cache.get("part_2", {}).get("correct_answer") is not None
+
+                # Only scrape if we are missing at least one answer
+                if not (part1_answered and part2_answered):
+                    logger.info(f"Fetching correct answers for solved puzzle {year}-{day}...")
+                    correct_answers = scrape_day_page_for_answers(year, day)
+                    if correct_answers:
+                        for part, answer in correct_answers.items():
+                            part_key = f"part_{part}"
+                            if answers_cache.get(part_key, {}).get("correct_answer") is None:
+                                answers_cache[part_key]["correct_answer"] = answer
+                        _write_answers_cache(year, day, answers_cache)
+    except Exception as e:
+        logger.warning(f"Could not check for/cache correct answers during data fetch: {e}")
+
 
     return content
 

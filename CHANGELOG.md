@@ -22,12 +22,17 @@ This will become version 1.3.0.
 - **New `aoc rm` Command**: It launches prompt that allows you to select specific categories of data to delete (e.g., cache, logs, solutions). An `--all` flag is provided to clear everything all at once after a confirmation prompt.
 
 ### Changed
+- `aoc sync` command has been optimized. It no longer downloads puzzle instructions or answers, and only fetches star progress for each year, making it significantly faster.
+- Correct answers for solved puzzles are now automatically fetched and cached when you view the puzzle `text` or `input`, not during the `sync` process.
 - `aoc stats` is now static and displayed using `tabulate`.
 
 ### Fixed
 - Corrected `.gitignore` logic to allow `progress.json` to be committed, which is necessary for the auto-commit feature to function correctly.
 
 ### Removed
+- The `last_sync_timestamp` field from the `progress.json` file.
+- The 24-hour rate limit and `--force` flag from the `aoc sync` command.
+- The progress bar from the `aoc sync` command, as it's now near-instantaneous.
 - Removed the `textual` dependency from the project, simplifying the environment.
 
 ---

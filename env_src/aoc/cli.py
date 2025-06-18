@@ -228,65 +228,32 @@ def load(part, force):
         logger.error(f"Failed to load solution into notepad.py: {e}")
 
 @cli.command()
-@click.option("-f", "--force", is_flag=True, help="Force sync even if it was run recently.")
-def sync(force):
+def sync():
     """
-    Scrapes AoC website for your progress and caches all puzzle texts and answers.
+    Scrapes AoC website for your star progress.
     """
     logger = logging.getLogger(__name__)
 
-    if not force and PROGRESS_JSON_PATH.exists():
-        with open(PROGRESS_JSON_PATH, 'r') as f:
-            try:
-                data = json.load(f)
-                last_sync_str = data.get("last_sync_timestamp")
-                if last_sync_str:
-                    last_sync_time = datetime.datetime.fromisoformat(last_sync_str)
-                    if datetime.datetime.now(datetime.timezone.utc) - last_sync_time < datetime.timedelta(days=1):
-                        display_time = last_sync_time.astimezone()
-                        click.secho(f"Sync was already performed at {display_time.strftime('%Y-%m-%d %H:%M:%S')}.", fg="yellow")
-                        click.echo("Please wait 24 hours or use the --force flag to override.")
-                        return
-            except json.JSONDecodeError:
-                logger.warning("Could not parse progress.json, proceeding with sync.")
-
-    click.secho("Starting full sync with Advent of Code website...", fg="yellow")
+    click.secho("Starting sync with Advent of Code website...", fg="yellow")
     now = datetime.datetime.now(datetime.timezone.utc)
     latest_year_to_check = now.year if now.month == 12 else now.year - 1
-    tasks_to_run = []
     full_progress = {}
 
-    for year in range(2015, latest_year_to_check + 1):
+    click.echo("Fetching star progress for each year...")
+    all_years = list(range(2015, latest_year_to_check + 1))
+
+    for year in all_years:
         try:
             year_progress = _utils.scrape_year_progress(year)
-            if not year_progress:
-                continue
-            full_progress[str(year)] = year_progress
-            for day_str, star_count in year_progress.items():
-                tasks_to_run.append({"year": year, "day": int(day_str), "stars": star_count})
+            if year_progress:
+                full_progress[str(year)] = year_progress
+                logger.info(f"Successfully synced progress for {year}.")
+            else:
+                logger.info(f"No progress found for year {year}. Skipping.")
         except Exception as e:
-            logger.error(f"Failed to discover progress for year {year}: {e}")
-
-    click.echo(f"Found {len(tasks_to_run)} puzzles to sync. Starting download...")
-
-    def run_task(task):
-        year, day, stars = task['year'], task['day'], task['stars']
-        _utils.get_aoc_data(year, day, "instructions")
-        if stars > 0:
-            correct_answers = _utils.scrape_day_page_for_answers(year, day)
-            if correct_answers:
-                answers_cache = _utils._read_answers_cache(year, day)
-                for part, answer in correct_answers.items():
-                    part_key = f"part_{part}"
-                    answers_cache[part_key]["correct_answer"] = answer
-                _utils._write_answers_cache(year, day, answers_cache)
-
-    with click.progressbar(tasks_to_run, label="Syncing puzzle data", length=len(tasks_to_run)) as bar:
-        for task in bar:
-            run_task(task)
+            logger.error(f"Failed to sync progress for year {year}: {e}")
 
     data_to_save = {
-        "last_sync_timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "progress": full_progress
     }
     with open(PROGRESS_JSON_PATH, 'w') as f:
@@ -294,7 +261,8 @@ def sync(force):
 
     click.secho("\n✅ Sync complete!", fg="green")
     click.echo(f"Your progress has been saved to {PROGRESS_JSON_PATH}")
-    click.echo("You can now use the 'aoc stats'")
+    click.echo("You can now use 'aoc stats' to view your progress.")
+
 
 @cli.command()
 def stats():
