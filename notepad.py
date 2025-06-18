@@ -1,18 +1,15 @@
 import aoc
 
 # --- Context Setting ---
-# By default, the environment will use the latest puzzle.
-# You can override it by uncommenting and setting the year/day below.
+# The puzzle context (year and day) is now set globally via the CLI.
+# Use 'aoc context set -y <year> -d <day>' to set it.
+# Use 'aoc context show' to see the current setting.
 
-# aoc.year = 2024
-# aoc.day = 25
-aoc.part = 1
 
 # --- Puzzle Logic ---
-# Get the puzzle input. The 'get_input' function will be automatically
-# populated with the aoc.year and aoc.day context.
-
-# puzzle_input = aoc.get_input()
+# Get the puzzle input. The 'get_input' function will automatically
+# use the context that has been set.
+puzzle_input = aoc.get_input()
 
 # Your solution logic here...
 def your_function_name():
@@ -21,12 +18,12 @@ def your_function_name():
 answer = your_function_name()
 
 # --- Submission ---
-# After solving, uncomment the following lines to submit your answer.
+# After solving, uncomment the following line and specify the part
+# number (1 or 2) to submit your answer.
 
 # if answer is not None:
-#     print(aoc.submit(answer))
+#     print(aoc.submit(answer, part=1))
 
 # --- Binding ---
-# If you don't have automated binding enabled uncomment this line:
-
-# aoc.bind()
+# To save your solution, you can use aoc.bind(part=1)
+# aoc.bind(part=1)
