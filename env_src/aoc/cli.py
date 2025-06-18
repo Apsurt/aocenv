@@ -12,6 +12,7 @@ import json
 import re
 import os
 from .stats_viewer import StatsApp
+from aoc import _utils
 
 # --- PATHS & CONFIG ---
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -63,7 +64,6 @@ def setup_logging(verbose: bool):
     console_handler.setFormatter(console_formatter)
     root_logger.addHandler(console_handler)
 
-# The context_settings allows the -v flag to work on the main command
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option('-v', '--verbose', is_flag=True, help="Enable verbose informational logging.")
 def cli(verbose):
@@ -80,6 +80,38 @@ def cli(verbose):
             gitkeep_path.touch()
     setup_logging(verbose)
 
+@cli.group()
+def context():
+    """Manages the persistent puzzle context (year and day)."""
+    pass
+
+@context.command(name="set")
+@click.option("-y", "--year", type=int, required=True, help="The puzzle year to set.")
+@click.option("-d", "--day", type=int, required=True, help="The puzzle day to set.")
+def context_set(year, day):
+    """Sets and saves the puzzle context."""
+    _utils.write_context(year, day)
+    click.secho(f"✅ Context set to Year {year}, Day {day}.", fg="green")
+
+@context.command(name="show")
+def context_show():
+    """Displays the current puzzle context."""
+    context = _utils.read_context()
+    if context:
+        year, day = context
+        click.echo(f"The current context is set to: Year {year}, Day {day}")
+    else:
+        click.echo("No context is currently set.")
+        click.echo("The tool will default to the latest available puzzle.")
+
+@context.command(name="clear")
+def context_clear():
+    """Clears the saved puzzle context."""
+    _utils.clear_context()
+    click.secho("✅ Context cleared.", fg="green")
+    click.echo("The tool will now default to the latest available puzzle.")
+
+
 @cli.command()
 def setup():
     """
@@ -95,25 +127,11 @@ def setup():
     click.echo("  4. Find the 'Cookies' section for adventofcode.com.")
     click.echo("  5. Copy the entire value of the 'session' cookie.")
 
-    # Prompt for the cookie securely (hides input)
     session_cookie = click.prompt("\nPlease paste your session cookie", hide_input=True)
+    auto_bind = click.confirm("\nAutomatically save your code (`bind`) on a correct submission?", default=True)
+    auto_clear = click.confirm("\nAutomatically clear notepad.py after a successful bind?", default=False)
+    auto_commit = click.confirm("\nAutomatically commit solutions to Git after a successful bind?", default=True)
 
-    auto_bind = click.confirm(
-            "\nAutomatically save your code (`bind`) on a correct submission?",
-            default=True
-        )
-
-    auto_clear = click.confirm(
-            "\nAutomatically clear notepad.py after a successful bind?",
-            default=False
-        )
-
-    auto_commit = click.confirm(
-            "\nAutomatically commit solutions to Git after a successful bind?",
-            default=True
-        )
-
-    # Save the answers to the config file
     config = configparser.ConfigParser()
     config["user"] = {
         "session_cookie": session_cookie,
@@ -130,18 +148,8 @@ def setup():
         click.secho(f"\n❌ Error saving configuration: {e}", fg="red")
 
 @cli.command()
-@click.option("--year", "-y", default=None, type=int, help="The puzzle year. Defaults to latest.")
-@click.option("--day", "-d", default=None, type=int, help="The puzzle day. Defaults to latest.")
-def text(year, day):
-    """
-    Fetches and displays the puzzle instructions for a given day.
-    """
-    # Override the default context if flags are provided
-    if year:
-        aoc.year = year
-    if day:
-        aoc.day = day
-
+def text():
+    """Displays the puzzle instructions for the current context."""
     click.echo(f"--- 🗓️ Advent of Code {aoc.year} - Day {aoc.day} --- \n")
     try:
         instruction_text = aoc.get_instructions()
@@ -150,23 +158,13 @@ def text(year, day):
         click.secho(f"❌ Error fetching instructions: {e}", fg="red")
 
 @cli.command()
-@click.option("-y", "--year", default=None, type=int, help="The puzzle year. Defaults to latest.")
-@click.option("-d", "--day", default=None, type=int, help="The puzzle day. Defaults to latest.")
-def input(year, day):
-    """
-    Fetches and displays the puzzle input for a given day.
-    """
-    # Override the default context if flags are provided
-    if year:
-        aoc.year = year
-    if day:
-        aoc.day = day
-
+def input():
+    """Fetches and displays the puzzle input for the current context."""
     logger = logging.getLogger(__name__)
     logger.info(f"Getting input for {aoc.year}-{aoc.day}")
     try:
         input_text = aoc.get_input()
-        click.echo("--- Puzzle Input ---")
+        click.echo(f"--- Puzzle Input for {aoc.year}-{aoc.day} ---")
         click.echo(input_text)
     except Exception as e:
         logger.error(f"Failed to get input: {e}")
@@ -174,109 +172,41 @@ def input(year, day):
 @cli.command()
 @click.option('-t', '--time', 'time_it', is_flag=True, help="Time the execution of the script.")
 def run(time_it):
-    """
-    Executes the code in the main notepad.py file.
-    """
+    """Executes the code in the main notepad.py file."""
     logger = logging.getLogger(__name__)
 
     if not NOTEPAD_PATH.exists():
         logger.error(f"Notepad file not found at: {NOTEPAD_PATH}")
         return
 
-    # --- Timing Logic ---
     start_time = 0
     if time_it:
-        # time.perf_counter() is best for measuring short durations
         start_time = time.perf_counter()
 
-    logger.info(f"Executing {NOTEPAD_PATH}...")
+    logger.info(f"Executing {NOTEPAD_PATH} with context {aoc.year}-{aoc.day}...")
     try:
-        # Use subprocess to run the script
         subprocess.run(["python", NOTEPAD_PATH], check=True)
     except subprocess.CalledProcessError as e:
         logger.error(f"notepad.py exited with an error (return code {e.returncode}).")
     except Exception as e:
         logger.error(f"An unexpected error occurred while running notepad.py: {e}")
     finally:
-        # --- Timing Logic ---
         if time_it:
             end_time = time.perf_counter()
             duration_ms = (end_time - start_time) * 1000
-            # Use secho for colored output
             click.secho(f"\n⏱️ Execution time: {duration_ms:.2f} ms", fg="yellow")
-
-@cli.command(hidden=True)
-def nuke():
-    """
-    Deletes all cached data, logs, solutions, and config.
-
-    This is a destructive operation and cannot be undone.
-    """
-    logger = logging.getLogger(__name__)
-
-    dirs_to_clear = [CACHE_DIR, LOGS_DIR, SOLUTIONS_DIR]
-
-    click.secho("🔥 NUKE WARNING 🔥", fg="red", bold=True, blink=True)
-    click.echo("This command will permanently delete the CONTENTS of:")
-    click.echo(f"  - Notepad: {NOTEPAD_PATH}")
-    click.echo(f"  - Cache: {CACHE_DIR}")
-    click.echo(f"  - Solutions: {SOLUTIONS_DIR}")
-    click.echo(f"  - Logs: {LOGS_DIR}")
-    click.echo(f"  - And your configuration file: {CONFIG_FILE_PATH}")
-
-    click.confirm("\nAre you absolutely sure you want to proceed?", abort=True)
-
-    logger.info("Proceeding with nuke operation...")
-
-    try:
-        for directory in dirs_to_clear:
-            if not directory.exists():
-                continue
-            logger.info(f"Clearing contents of {directory}...")
-            for item in directory.iterdir():
-                # IMPORTANT: Do not delete the .gitkeep file
-                if item.name == ".gitkeep":
-                    continue
-                if item.is_dir():
-                    shutil.rmtree(item)
-                else:
-                    item.unlink()
-
-        if NOTEPAD_PATH.exists():
-            NOTEPAD_PATH.unlink()
-            NOTEPAD_PATH.write_text("")
-            logger.info("Cleared notepad.py file.")
-
-        # Delete the config file
-        if CONFIG_FILE_PATH.exists():
-            CONFIG_FILE_PATH.unlink()
-            logger.info("Deleted configuration file.")
-
-        click.secho("\n✅ Environment has been wiped clean.", fg="green")
-        click.echo("Run 'aoc setup' to re-configure.")
-
-    except Exception as e:
-        logger.error(f"An error occurred during the nuke operation: {e}")
 
 @cli.command()
 @click.argument('part', type=click.Choice(['1', '2']))
-@click.option("-y", "--year", default=None, type=int, help="The puzzle year. Defaults to latest.")
-@click.option("-d", "--day", default=None, type=int, help="The puzzle day. Defaults to latest.")
 @click.option("-f", "--force", is_flag=True, help="Force overwrite of notepad.py if not empty.")
-def load(part, year, day, force):
+def load(part, force):
     """
-    Loads a saved solution into notepad.py.
-
+    Loads a saved solution for the current context into notepad.py.
     PART is the puzzle part to load (1 or 2).
     """
     logger = logging.getLogger(__name__)
+    target_year, target_day, target_part = aoc.year, aoc.day, int(part)
 
-    # 1. Determine the target year and day
-    target_year = year if year is not None else aoc.year
-    target_day = day if day is not None else aoc.day
-    target_part = int(part)
-
-    # 2. Check if the solution file exists
     solution_path = SOLUTIONS_DIR / str(target_year) / f"{target_day:02d}" / f"part_{target_part}.py"
     logger.info(f"Attempting to load solution from: {solution_path}")
 
@@ -284,14 +214,12 @@ def load(part, year, day, force):
         click.secho(f"Error: Solution not found at {solution_path}", fg="red")
         return
 
-    # 3. Check if notepad.py is empty and handle confirmation/force
     if NOTEPAD_PATH.exists() and NOTEPAD_PATH.read_text().strip() and not force:
         click.secho("Warning: notepad.py is not empty!", fg="yellow")
         if not click.confirm("Do you want to overwrite its contents?"):
             click.echo("Load operation cancelled.")
             return
 
-    # 4. Perform the file copy
     try:
         solution_content = solution_path.read_text()
         NOTEPAD_PATH.write_text(solution_content)
@@ -304,9 +232,6 @@ def load(part, year, day, force):
 def sync(force):
     """
     Scrapes AoC website for your progress and caches all puzzle texts and answers.
-
-    This is a long-running command that makes many requests. Use it sparingly.
-    By default, this command can only be run once every 24 hours.
     """
     logger = logging.getLogger(__name__)
 
@@ -326,17 +251,14 @@ def sync(force):
                 logger.warning("Could not parse progress.json, proceeding with sync.")
 
     click.secho("Starting full sync with Advent of Code website...", fg="yellow")
-
-    # PASS 1: Discover all tasks that need to be run.
-    logger.info("Discovering puzzles to sync...")
-    now = datetime.datetime.now(datetime.timezone.utc) # Use timezone-aware
+    now = datetime.datetime.now(datetime.timezone.utc)
     latest_year_to_check = now.year if now.month == 12 else now.year - 1
     tasks_to_run = []
     full_progress = {}
 
     for year in range(2015, latest_year_to_check + 1):
         try:
-            year_progress = aoc._utils.scrape_year_progress(year)
+            year_progress = _utils.scrape_year_progress(year)
             if not year_progress:
                 continue
             full_progress[str(year)] = year_progress
@@ -347,37 +269,22 @@ def sync(force):
 
     click.echo(f"Found {len(tasks_to_run)} puzzles to sync. Starting download...")
 
-    # PASS 2: Execute the tasks with a progress bar.
     def run_task(task):
-        """Helper function to process a single task. No logging here."""
         year, day, stars = task['year'], task['day'], task['stars']
-        aoc._utils.get_aoc_data(year, day, "instructions")
+        _utils.get_aoc_data(year, day, "instructions")
         if stars > 0:
-            correct_answers = aoc._utils.scrape_day_page_for_answers(year, day)
+            correct_answers = _utils.scrape_day_page_for_answers(year, day)
             if correct_answers:
-                answers_cache = aoc._utils._read_answers_cache(year, day)
+                answers_cache = _utils._read_answers_cache(year, day)
                 for part, answer in correct_answers.items():
                     part_key = f"part_{part}"
                     answers_cache[part_key]["correct_answer"] = answer
-                aoc._utils._write_answers_cache(year, day, answers_cache)
-        # time.sleep(0.25)
+                _utils._write_answers_cache(year, day, answers_cache)
 
-    def show_current_task(task):
-        """Provides the text to display next to the progress bar."""
-        if task:
-            return f"Syncing {task['year']}-{task['day']:02d}"
-        return "" # Message when bar is finished
-
-    with click.progressbar(
-        tasks_to_run,
-        label="Syncing puzzle data",
-        length=len(tasks_to_run),
-        item_show_func=show_current_task
-    ) as bar:
+    with click.progressbar(tasks_to_run, label="Syncing puzzle data", length=len(tasks_to_run)) as bar:
         for task in bar:
             run_task(task)
 
-    # Save the aggregated progress data
     data_to_save = {
         "last_sync_timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "progress": full_progress
@@ -391,39 +298,28 @@ def sync(force):
 
 @cli.command()
 def stats():
-    """
-    Launches an interactive viewer for your puzzle completion stats.
-    """
+    """Launches an interactive viewer for your puzzle completion stats."""
     logger = logging.getLogger(__name__)
     if not PROGRESS_JSON_PATH.exists():
-        click.secho("No progress data found.", fg="red")
-        click.echo("Please run 'aoc sync' first to gather your data.")
+        click.secho("No progress data found. Please run 'aoc sync' first.", fg="red")
         return
-
     with open(PROGRESS_JSON_PATH, 'r') as f:
         progress_data = json.load(f).get("progress", {})
-
     if not progress_data:
         click.secho("Progress data is empty. Run 'aoc sync' to gather data.", fg="yellow")
         return
-
-    # Launch the Textual app, passing the progress data to it
     app = StatsApp(progress_data=progress_data)
     app.run()
+
 
 @cli.command()
 @click.argument('name', default='default', required=False)
 @click.option("-f", "--force", is_flag=True, help="Force overwrite of notepad.py if not empty.")
 def start(name, force):
-    """
-    Populates notepad.py with a template.
-
-    If NAME is provided, it loads that specific template.
-    Otherwise, it defaults to loading the 'default' template.
-    """
+    """Populates notepad.py with a template."""
     ctx = click.get_current_context()
-    # Pass the 'name' variable to the invoked command
     ctx.invoke(template_load, name=name, force=force)
+
 
 @cli.command()
 def clear():
@@ -431,35 +327,25 @@ def clear():
     aoc.clear()
     click.secho("✅ notepad.py has been cleared.", fg="green")
 
+
 @cli.command(name="list")
 def solutions_list():
     """Lists all archived solutions."""
     if not SOLUTIONS_DIR.exists():
         click.echo("No solutions directory found.")
         return
-
-    # Use glob to find all part_*.py files
     solution_files = sorted(SOLUTIONS_DIR.glob("**/part_*.py"), reverse=True)
-
     if not solution_files:
         click.echo("No solutions have been saved yet.")
         return
-
     click.secho("--- Archived Solutions ---", bold=True)
-
     last_year = None
     for path in solution_files:
         try:
-            # path.parts gives a tuple of the path components
-            # e.g., ('solutions', '2020', '07', 'part_1.py')
-            year = path.parts[-3]
-            day = path.parts[-2]
-            part = path.stem # 'part_1'
-
+            year, day, part = path.parts[-3], path.parts[-2], path.stem
             if year != last_year:
                 click.secho(f"\nYear {year}", fg="bright_yellow")
                 last_year = year
-
             click.echo(f"  Day {day}, {part.replace('_', ' ').title()}")
         except IndexError:
             continue
@@ -522,7 +408,6 @@ def template_list():
 
     click.secho("--- Custom Templates ---", bold=True)
     for template_file in sorted(TEMPLATES_DIR.glob("*.py.template")):
-        # template_file.stem gives the filename without the final extension
         click.echo(f"  - {template_file.stem.replace('.py', '')}")
 
 @template.command(name="delete")
@@ -530,8 +415,7 @@ def template_list():
 def template_delete(name):
     """Deletes a saved template."""
     if name.lower() == 'default':
-        click.secho("Error: The 'default' template is protected and cannot be deleted.", fg="red")
-        click.echo("You can overwrite it with 'aoc template save default --force'.")
+        click.secho("Error: The 'default' template is protected.", fg="red")
         return
 
     template_path = TEMPLATES_DIR / f"{name}.py.template"
@@ -555,51 +439,35 @@ def test():
     pass
 
 @test.command(name="add")
-@click.option("-y", "--year", default=None, type=int, help="Puzzle year. Defaults to context.")
-@click.option("-d", "--day", default=None, type=int, help="Puzzle day. Defaults to context.")
 @click.option("-p", "--part", type=click.Choice(['1', '2']), prompt="Which part is this test for? (1 or 2)")
-def test_add(year, day, part):
-    """Interactively add a new test case."""
-    target_year = year if year is not None else aoc.year
-    target_day = day if day is not None else aoc.day
+def test_add(part):
+    """Interactively add a new test case for the current context."""
+    target_year, target_day = aoc.year, aoc.day
     part_key = f"part_{part}"
 
-    click.echo("--- Adding New Test Case ---")
-    click.echo(f"For: Year {target_year}, Day {target_day}, Part {part}")
-
-    click.echo("\nPaste or type your test input. When you are done, save and close the editor.")
-    click.echo("(This will open your default command-line editor: nano, vim, etc.)")
-    # Using click.edit() for multiline input
+    click.echo(f"--- Adding New Test Case for {target_year}-{target_day} Part {part} ---")
     test_input = click.edit()
-
     if test_input is None:
         click.echo("No input provided. Aborting.")
         return
+    test_output = click.prompt("What is the expected output?")
 
-    test_output = click.prompt("What is the expected output for this test case?")
-
-    # Read existing tests, add the new one, and write back
-    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+    tests_data = _utils._read_tests_cache(target_year, target_day)
     tests_data[part_key].append({"input": test_input.strip(), "output": test_output.strip()})
-    aoc._utils._write_tests_cache(target_year, target_day, tests_data)
-
+    _utils._write_tests_cache(target_year, target_day, tests_data)
     click.secho("\n✅ Test case added successfully!", fg="green")
 
-@test.command(name="list")
-@click.option("-y", "--year", default=None, type=int, help="Puzzle year. Defaults to context.")
-@click.option("-d", "--day", default=None, type=int, help="Puzzle day. Defaults to context.")
-def test_list(year, day):
-    """Lists saved test cases for a given day."""
-    target_year = year if year is not None else aoc.year
-    target_day = day if day is not None else aoc.day
 
-    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+@test.command(name="list")
+def test_list():
+    """Lists saved test cases for the current context."""
+    target_year, target_day = aoc.year, aoc.day
+    tests_data = _utils._read_tests_cache(target_year, target_day)
 
     click.secho(f"--- Test Cases for {target_year}-{target_day:02d} ---", bold=True)
     total_tests = len(tests_data["part_1"]) + len(tests_data["part_2"])
     if total_tests == 0:
-        click.echo("No test cases found for this day.")
-        click.echo("Add one with 'aoc test add'.")
+        click.echo("No test cases found. Add one with 'aoc test add'.")
         return
 
     for part_num in [1, 2]:
@@ -608,63 +476,46 @@ def test_list(year, day):
             click.secho(f"\nPart {part_num}:", fg="yellow")
             for i, test in enumerate(tests_data[part_key]):
                 click.secho(f"  Test #{i+1}:", bold=True)
-                click.echo("    --- Input ---")
-                # Indent the input block for readability
                 indented_input = "    " + "\n    ".join(test['input'].splitlines())
-                click.secho(indented_input, fg="bright_black")
+                click.secho(f"    --- Input ---\n{indented_input}", fg="bright_black")
                 click.echo(f"    --- Expected Output ---\n    {test['output']}")
+
 
 @test.command(name="delete")
 @click.argument('part', type=click.Choice(['1', '2']))
 @click.argument('index', type=int)
-@click.option("--year", default=None, type=int, help="Puzzle year. Defaults to context.")
-@click.option("--day", default=None, type=int, help="Puzzle day. Defaults to context.")
-def test_delete(part, index, year, day):
-    """Deletes a specific test case by its index."""
-    target_year = year if year is not None else aoc.year
-    target_day = day if day is not None else aoc.day
+def test_delete(part, index):
+    """Deletes a specific test case for the current context."""
+    target_year, target_day = aoc.year, aoc.day
     part_key = f"part_{part}"
     list_index = index - 1
 
-    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+    tests_data = _utils._read_tests_cache(target_year, target_day)
 
-    # --- Validation and Safety Checks ---
     if not (0 <= list_index < len(tests_data[part_key])):
         click.secho(f"Error: Test #{index} for Part {part} does not exist.", fg="red")
         return
 
-    test_to_delete = tests_data[part_key][list_index]
-
-    click.secho(f"You are about to delete Test #{index} for Part {part}:", bold=True)
-    click.echo("    --- Input ---")
-    indented_input = "    " + "\n    ".join(test_to_delete['input'].splitlines())
-    click.secho(indented_input, fg="bright_black")
-    click.echo(f"    --- Expected Output ---\n    {test_to_delete['output']}")
-
-    if not click.confirm("\nAre you sure you want to delete this test case?"):
-        click.echo("Delete operation cancelled.")
-        return
-
-    # --- Deletion Logic ---
     tests_data[part_key].pop(list_index)
-    aoc._utils._write_tests_cache(target_year, target_day, tests_data)
-
+    _utils._write_tests_cache(target_year, target_day, tests_data)
     click.secho(f"✅ Test #{index} for Part {part} has been deleted.", fg="green")
 
+
 @test.command(name="run")
-@click.option("-y", "--year", default=None, type=int, help="Puzzle year. Defaults to context.")
-@click.option("-d", "--day", default=None, type=int, help="Puzzle day. Defaults to context.")
-def test_run(year, day):
-    """Runs notepad.py against all saved test cases for a given day."""
+def test_run():
+    """Runs notepad.py against all saved tests for the current context."""
     logger = logging.getLogger(__name__)
-    target_year = year if year is not None else aoc.year
-    target_day = day if day is not None else aoc.day
+    target_year, target_day = aoc.year, aoc.day
 
     try:
         notepad_content = NOTEPAD_PATH.read_text()
-        part_match = re.search(r"aoc\.part\s*=\s*([12])", notepad_content)
+        part_match = re.search(r"aoc\.submit\s*\(\s*[^,]+,\s*part\s*=\s*([12])\s*\)", notepad_content)
         if not part_match:
-            click.secho("Error: Could not find 'aoc.part = 1' or 'aoc.part = 2' in notepad.py.", fg="red")
+             part_match = re.search(r"aoc\.bind\s*\(\s*part\s*=\s*([12])\s*\)", notepad_content)
+
+        if not part_match:
+            click.secho("Error: Could not determine part from notepad.py.", fg="red")
+            click.secho("Hint: Make sure you have an `aoc.submit(answer, part=1)` or `aoc.bind(part=1)` call.", fg="red")
             return
         part = int(part_match.group(1))
         part_key = f"part_{part}"
@@ -672,7 +523,7 @@ def test_run(year, day):
         click.secho(f"Error: notepad.py not found.", fg="red")
         return
 
-    tests_data = aoc._utils._read_tests_cache(target_year, target_day)
+    tests_data = _utils._read_tests_cache(target_year, target_day)
     tests_to_run = tests_data.get(part_key, [])
     if not tests_to_run:
         click.echo(f"No test cases found for Part {part}. Add one with 'aoc test add'.")
@@ -683,7 +534,6 @@ def test_run(year, day):
 
     for i, test in enumerate(tests_to_run):
         click.secho(f"\n--- Test Case #{i+1} ---", fg="yellow")
-
         test_env = os.environ.copy()
         test_env["AOC_TEST_MODE"] = "true"
         test_env["AOC_TEST_INPUT"] = test["input"]
@@ -692,15 +542,12 @@ def test_run(year, day):
         try:
             result = subprocess.run(
                 ["python", NOTEPAD_PATH],
-                capture_output=True, text=True,
-                env=test_env # Pass the custom environment to the subprocess
+                capture_output=True, text=True, env=test_env
             )
-
             output = result.stdout.strip()
             click.echo(output)
             if result.stderr:
                 click.secho(result.stderr.strip(), fg='red')
-
             if "✅ PASSED" in output:
                 passed_count += 1
         except Exception as e:

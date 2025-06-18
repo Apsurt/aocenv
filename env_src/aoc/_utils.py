@@ -17,7 +17,33 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CACHE_DIR = PROJECT_ROOT / ".cache"
 CONFIG_FILE_PATH = Path(__file__).parent.parent / "config.ini"
+CONTEXT_FILE_PATH = PROJECT_ROOT / ".context.json"
 AOC_BASE_URL = "https://adventofcode.com"
+
+def read_context() -> tuple[int, int] | None:
+    """Reads the persisted year and day from the context file."""
+    if not CONTEXT_FILE_PATH.exists():
+        return None
+    try:
+        with open(CONTEXT_FILE_PATH, 'r') as f:
+            data = json.load(f)
+            if "year" in data and "day" in data:
+                return data["year"], data["day"]
+    except (json.JSONDecodeError, KeyError):
+        logger.warning("Could not read .context.json, file may be corrupt.")
+        return None
+    return None
+
+def write_context(year: int, day: int):
+    """Saves the year and day to the context file."""
+    with open(CONTEXT_FILE_PATH, 'w') as f:
+        json.dump({"year": year, "day": day}, f, indent=2)
+
+def clear_context():
+    """Removes the context file."""
+    if CONTEXT_FILE_PATH.exists():
+        CONTEXT_FILE_PATH.unlink()
+
 
 # --- HELPER FUNCTIONS ---
 

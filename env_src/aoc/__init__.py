@@ -11,24 +11,18 @@ TEST_MODE = os.getenv("AOC_TEST_MODE") == "true"
 _test_input_data = os.getenv("AOC_TEST_INPUT")
 _test_expected_answer = os.getenv("AOC_TEST_OUTPUT")
 
-# --- CONTEXT VARIABLES ---
-year, day = _utils.get_latest_puzzle_date()
-part: int | None = None
+# --- CONTEXT DETERMINATION ---
+# The context is now determined by a single source of truth.
+# 1. Check for a persisted context in `.context.json`.
+# 2. If none, fall back to the latest puzzle date.
+context = _utils.read_context()
+if context:
+    year, day = context
+    logging.getLogger(__name__).info(f"Using persisted context: Year {year}, Day {day}")
+else:
+    year, day = _utils.get_latest_puzzle_date()
+    logging.getLogger(__name__).info("No context set. Defaulting to latest puzzle.")
 
-# --- Internal Helper functions for Testing ---
-def _set_test_context(input_data: str, expected_answer: str):
-    """Sets the test data and enables test mode."""
-    global TEST_MODE, _test_input_data, _test_expected_answer
-    TEST_MODE = True
-    _test_input_data = input_data
-    _test_expected_answer = expected_answer
-
-def _reset_test_context():
-    """Clears test data and disables test mode."""
-    global TEST_MODE, _test_input_data, _test_expected_answer
-    TEST_MODE = False
-    _test_input_data = None
-    _test_expected_answer = None
 
 # --- PUBLIC FUNCTIONS ---
 def get_instructions() -> str:
@@ -52,9 +46,10 @@ def get_input() -> str:
 
     return _utils.get_aoc_data(year, day, data_type="input")
 
-def submit(answer) -> str:
+def submit(answer, part: int) -> str:
     """
     Submits an answer for the current puzzle context.
+    The puzzle part (1 or 2) must be provided.
     In Test Mode, this performs a local check against the expected answer.
     """
     logger = logging.getLogger(__name__)
@@ -70,7 +65,7 @@ def submit(answer) -> str:
             return f"❌ FAILED: Got '{str_answer}', but expected '{_test_expected_answer}'"
 
     if part not in [1, 2]:
-        err_msg = "aoc.part must be set to 1 or 2 before submitting."
+        err_msg = "The 'part' argument for submit() must be 1 or 2."
         logger.error(err_msg)
         return err_msg
 
@@ -79,8 +74,8 @@ def submit(answer) -> str:
     if "That's the right answer!" in response_text:
         logger.info("Answer is correct!")
         if _utils.get_bool_config_setting("auto_bind", default=True):
-            logger.info("Auto-binding solution...")
-            bind()
+            logger.info(f"Auto-binding solution for Part {part}...")
+            bind(part)
         return f"✅ {response_text}"
 
     elif "You don't seem to be solving the right level" in response_text:
@@ -91,14 +86,15 @@ def submit(answer) -> str:
         logger.warning(f"Answer is incorrect. Response: {response_text}")
         return f"❌ {response_text}"
 
-def bind(overwrite: bool = False):
+def bind(part: int, overwrite: bool = False):
     """
     Archives the code from notepad.py to the solutions directory.
+    The puzzle part (1 or 2) must be provided.
     The 'aoc.bind()' call is automatically removed from the saved code.
     """
     logger = logging.getLogger(__name__)
     if part not in [1, 2]:
-        logger.error("aoc.part must be set to 1 or 2 before binding.")
+        logger.error("The 'part' argument for bind() must be 1 or 2.")
         return
 
     source_path = _utils.PROJECT_ROOT / "notepad.py"
@@ -112,7 +108,7 @@ def bind(overwrite: bool = False):
         return
 
     if dest_path.exists() and not overwrite:
-        logger.warning(f"Solution already exists at {dest_path}. Use bind(overwrite=True) to replace it.")
+        logger.warning(f"Solution already exists at {dest_path}. Use bind(overwrite=True, part={part}) to replace it.")
         return
 
     try:
