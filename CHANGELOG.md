@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-This will become version 1.3.0.
+
+---
+
+## [1.3.0] - 2025-06-18
+
+This version focuses on major optimizations to the `sync` command and streamlining the developer experience.
 
 ### Added
 - **Automatic Git Commits**: Added an optional feature, configurable via `aoc setup`, to automatically `git commit` a solution with a standardized message (e.g., `feat(2025-16): Solve Part 1`) after a successful `bind`.
