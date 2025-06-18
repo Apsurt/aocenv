@@ -5,13 +5,13 @@ import logging
 import colorlog
 import aoc
 import subprocess
-import time
 import shutil
 import datetime
 import json
 from tabulate import tabulate
 import re
 import os
+import statistics
 from aoc import _utils
 
 # --- PATHS & CONFIG ---
@@ -642,6 +642,96 @@ def rm(clear_all):
         return
 
     _perform_clear(selected_ids)
+
+@cli.command()
+def perf():
+    """
+    Runs all saved solutions and measures their performance.
+    """
+    logger = logging.getLogger(__name__)
+    click.secho("--- Running Performance Benchmark ---", bold=True)
+
+    solution_files = sorted(SOLUTIONS_DIR.glob("**/part_*.py"))
+    if not solution_files:
+        click.secho("No solutions found to benchmark.", fg="yellow")
+        return
+
+    results = []
+    time_regex = re.compile(r"Execution time: ([\d.]+) ms")
+
+    env = os.environ.copy()
+    env["AOC_TIME_IT"] = "true"
+
+    with click.progressbar(solution_files, label="Benchmarking solutions") as bar:
+        for path in bar:
+            try:
+                year = int(path.parts[-3])
+                day = int(path.parts[-2])
+                part_str = path.stem
+            except (IndexError, ValueError):
+                logger.warning(f"Could not parse year/day from path: {path}. Skipping.")
+                continue
+
+            # Set context for the run
+            _utils.write_context(year, day)
+
+            try:
+                result = subprocess.run(
+                    ["python", str(path)],
+                    capture_output=True, text=True, env=env, check=False
+                )
+
+                if result.returncode != 0:
+                    logger.error(f"Solution {year}-{day:02d} {part_str} failed to run. Error:\n{result.stderr}")
+                    continue
+
+                output = result.stdout
+                match = time_regex.search(output)
+
+                if match:
+                    time_ms = float(match.group(1))
+                    results.append({
+                        "year": year,
+                        "day": day,
+                        "part": part_str.split('_')[1],
+                        "time": time_ms
+                    })
+                else:
+                    logger.warning(f"Could not parse execution time for {path}. Skipping.")
+
+            except Exception as e:
+                logger.error(f"An unexpected error occurred while running {path}: {e}")
+
+    if not results:
+        click.secho("\nNo solutions could be benchmarked.", fg="red")
+        return
+
+    # --- Display Results ---
+    click.secho("\n\n--- Performance Results ---", bold=True)
+
+    # Detailed table
+    headers = [
+        click.style("Year", bold=True),
+        click.style("Day", bold=True),
+        click.style("Part", bold=True),
+        click.style("Time (ms)", bold=True)
+    ]
+    table_data = [[r['year'], r['day'], r['part'], f"{r['time']:.2f}"] for r in results]
+    click.echo(tabulate(table_data, headers=headers, tablefmt="psql"))
+
+    # Summary Statistics
+    if results:
+        times = [r['time'] for r in results]
+        stats_data = [
+            ("Solutions Benchmarked", len(times)),
+            ("Average Time (ms)", f"{statistics.mean(times):.2f}"),
+            ("Median Time (ms)", f"{statistics.median(times):.2f}"),
+            ("Min Time (ms)", f"{min(times):.2f}"),
+            ("Max Time (ms)", f"{max(times):.2f}"),
+            ("Standard Deviation", f"{statistics.stdev(times):.2f}" if len(times) > 1 else "N/A"),
+        ]
+        click.secho("\n--- Summary Statistics ---", bold=True)
+        click.echo(tabulate(stats_data, headers=["Metric", "Value"], tablefmt="psql"))
 
 
 if __name__ == "__main__":
