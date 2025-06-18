@@ -9,6 +9,7 @@ import time
 import shutil
 import datetime
 import json
+from tabulate import tabulate
 import re
 import os
 from aoc import _utils
@@ -307,32 +308,29 @@ def stats():
         click.secho("Progress data is empty. Run 'aoc sync' to gather data.", fg="yellow")
         return
 
-    # --- Table Building Logic ---
-    # Get all years and sort them descending for the header
     years = sorted(progress_data.keys(), reverse=True)
     if not years:
         click.secho("Progress data is empty. Run 'aoc sync' to gather data.", fg="yellow")
         return
 
-    # Header
-    header = f"{'Day':<5}" + "".join([f"{year:<7}" for year in years])
-    click.secho(header, bold=True)
-    click.echo("=" * len(header))
+    headers = [click.style("Day", bold=True)] + [click.style(year, bold=True) for year in years]
+    table_data = []
 
-    # Rows for each day
     for day in range(1, 26):
-        row_str = f"{day:<5}"
+        row = [f"{day}"]
         for year in years:
-            day_str = str(day)
-            stars = progress_data.get(year, {}).get(day_str, 0)
+            stars = progress_data.get(year, {}).get(str(day), 0)
             if stars == 2:
                 symbol = click.style("★★", fg="yellow")
             elif stars == 1:
                 symbol = click.style("★ ", fg="bright_black")
             else:
                 symbol = "  "
-            row_str += f"{symbol:<7}" # Pad to align with year headers
-        click.echo(row_str)
+            row.append(symbol)
+        table_data.append(row)
+
+    table = tabulate(table_data, headers=headers, tablefmt="psql", stralign="center")
+    click.echo(table)
 
 @cli.command()
 @click.argument('name', default='default', required=False)

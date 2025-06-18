@@ -14,6 +14,7 @@ dependencies = [
     "colorlog>=6.9.0",
     "html2text>=2024.2.26",
     "requests>=2.32.4",
+    "tabulate>=0.9.0",
 ]
 
 [project.scripts]
