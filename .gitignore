@@ -17,6 +17,7 @@ build/
 .cache/
 .logs/
 env_src/config.ini
+.context.json
 
 # IDEs
 .idea/
