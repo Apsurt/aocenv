@@ -131,7 +131,20 @@ You can save the contents of `notepad.py` as a named template to reuse later. Th
 * **Load a template:** `aoc template load <template_name> [-f]`
 * **Delete a template:** `aoc template delete <template_name>`
 
+## 🧩 Puzzle Solver's Toolkit (`aoc.tools`)
+
+To accelerate development, this environment includes a built-in toolkit of helpers for common Advent of Code patterns. You can import these tools in your `notepad.py` script like so:
+`from aoc import tools`
+
+**Key features include:**
+* **`tools.Grid`**: A powerful class for working with 2D grids, featuring easy neighbor-finding and coordinate-based access.
+* **Graph Algorithms**: Standard implementations of `tools.bfs`, `tools.dfs`, and `tools.dijkstra` for pathfinding and graph traversal.
+* **Geometry & Interval Helpers**: Functions like `tools.manhattan_distance`, `tools.bresenham_line`, `tools.shoelace_area`, and `tools.merge_intervals` for specific puzzle archetypes.
+* **Performance**: A `@tools.memoize` decorator to automatically cache the results of expensive, recursive functions.
+* **And more**: The toolkit also includes helpers for tree structures and advanced number theory.
+
 ## 🧪 Test Case Management
+
 The `test` command group allows you to manage local test cases for each puzzle. Instead of relying on a fragile scraper, you can manually add the examples from the puzzle description once. This gives you a reliable set of tests to run your code against while you develop. Test cases are stored in `.cache/<year>/<day>/tests.json`.
 
 * **Add a test interactively:** `aoc test add`

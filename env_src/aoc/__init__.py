@@ -6,6 +6,7 @@ from contextlib import contextmanager
 import click
 from . import _utils
 from .parsers import InputParser
+from . import tools
 
 # --- Test Mode Initialization ---
 # Check for environment variables to activate test mode.
