@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 import re
 import os
 from . import _utils

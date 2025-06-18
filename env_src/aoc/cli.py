@@ -11,8 +11,6 @@ import datetime
 import json
 import re
 import os
-from .stats_viewer import StatsApp
-from .clear_viewer import ClearApp
 from aoc import _utils
 
 # --- PATHS & CONFIG ---
@@ -299,8 +297,7 @@ def sync(force):
 
 @cli.command()
 def stats():
-    """Launches an interactive viewer for your puzzle completion stats."""
-    logger = logging.getLogger(__name__)
+    """Displays your puzzle completion stats in a table."""
     if not PROGRESS_JSON_PATH.exists():
         click.secho("No progress data found. Please run 'aoc sync' first.", fg="red")
         return
@@ -309,9 +306,33 @@ def stats():
     if not progress_data:
         click.secho("Progress data is empty. Run 'aoc sync' to gather data.", fg="yellow")
         return
-    app = StatsApp(progress_data=progress_data)
-    app.run()
 
+    # --- Table Building Logic ---
+    # Get all years and sort them descending for the header
+    years = sorted(progress_data.keys(), reverse=True)
+    if not years:
+        click.secho("Progress data is empty. Run 'aoc sync' to gather data.", fg="yellow")
+        return
+
+    # Header
+    header = f"{'Day':<5}" + "".join([f"{year:<7}" for year in years])
+    click.secho(header, bold=True)
+    click.echo("=" * len(header))
+
+    # Rows for each day
+    for day in range(1, 26):
+        row_str = f"{day:<5}"
+        for year in years:
+            day_str = str(day)
+            stars = progress_data.get(year, {}).get(day_str, 0)
+            if stars == 2:
+                symbol = click.style("★★", fg="yellow")
+            elif stars == 1:
+                symbol = click.style("★ ", fg="bright_black")
+            else:
+                symbol = "  "
+            row_str += f"{symbol:<7}" # Pad to align with year headers
+        click.echo(row_str)
 
 @cli.command()
 @click.argument('name', default='default', required=False)
@@ -521,7 +542,7 @@ def test_run():
         part = int(part_match.group(1))
         part_key = f"part_{part}"
     except FileNotFoundError:
-        click.secho(f"Error: notepad.py not found.", fg="red")
+        click.secho("Error: notepad.py not found.", fg="red")
         return
 
     tests_data = _utils._read_tests_cache(target_year, target_day)
@@ -607,15 +628,14 @@ def _perform_clear(items_to_clear: list[str]):
         click.secho("\nNo items were selected to be cleared.", fg="yellow")
 
 @cli.command()
-@click.option("--all", "clear_all", is_flag=True, help="Clear all data without the interactive prompt.")
+@click.option("--all", "clear_all", is_flag=True, help="Clear all data without prompting.")
 def rm(clear_all):
     """
     Clears cached data, logs, and other generated files.
 
-    Lauches an interactive screen to select what to clear.
+    Launches an interactive prompt to select what to clear.
     Use --all to clear everything non-interactively.
     """
-    logger = logging.getLogger(__name__)
 
     if clear_all:
         click.secho("You are about to permanently delete all cached data, logs, solutions, and configs.", fg="red", bold=True)
@@ -626,14 +646,30 @@ def rm(clear_all):
         _perform_clear(all_item_ids)
         return
 
-    # Prepare items for the TUI: (Display Name, internal_id)
-    app_items = [(item[0], item[1]) for item in CLEARABLE_ITEMS]
-    app = ClearApp(items_to_clear=app_items)
-    app.run()
+    # --- Interactive Deletion Prompt ---
+    click.echo("Select items to clear. (e.g., '1,3,5' or 'all')")
+    for i, (display_name, _, _) in enumerate(CLEARABLE_ITEMS, 1):
+        click.echo(f"  {click.style(str(i), fg='yellow')}: {display_name}")
 
-    selected_ids = app.selected_for_deletion
+    choice_str = click.prompt("\nEnter the numbers of items to clear, separated by commas")
+
+    if choice_str.lower().strip() == 'all':
+        return rm(clear_all=True)
+
+    selected_ids = []
+    id_map = {i: item[1] for i, item in enumerate(CLEARABLE_ITEMS, 1)}
+
+    try:
+        indices = [int(i.strip()) for i in choice_str.split(',') if i.strip()]
+        for i in indices:
+            if i in id_map and id_map[i] not in selected_ids:
+                selected_ids.append(id_map[i])
+    except ValueError:
+        click.secho("Invalid input. Please enter numbers separated by commas.", fg="red")
+        return
+
     if not selected_ids:
-        click.echo("No items selected. Operation cancelled.")
+        click.echo("No valid items selected. Operation cancelled.")
         return
 
     click.echo("\nYou have selected the following items for deletion:")

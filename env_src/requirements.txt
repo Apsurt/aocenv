@@ -3,4 +3,3 @@ click>=8.1.8
 colorlog>=6.9.0
 html2text>=2024.2.26
 requests>=2.32.4
-textual>=0.73.0
