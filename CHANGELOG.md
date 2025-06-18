@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.4.0] - 2025-06-18
+
 ### Added
 - A new `aoc.timed()` context manager to the `aoc` module for precise timing of solution code.
 - A new `aoc perf` command to run all saved solutions, measure their performance, and display a detailed report with statistics.
