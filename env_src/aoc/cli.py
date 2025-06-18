@@ -12,6 +12,7 @@ import json
 import re
 import os
 from .stats_viewer import StatsApp
+from .clear_viewer import ClearApp
 from aoc import _utils
 
 # --- PATHS & CONFIG ---
@@ -555,6 +556,97 @@ def test_run():
 
     color = "green" if passed_count == len(tests_to_run) else "red"
     click.secho(f"\n--- Summary ---\n{passed_count} / {len(tests_to_run)} tests passed.", fg=color, bold=True)
+
+CLEARABLE_ITEMS = [
+    # (Display Name, internal_id, path_object)
+    ("Cached Data (.cache/)", "cache", CACHE_DIR),
+    ("Log Files (.logs/)", "logs", LOGS_DIR),
+    ("Archived Solutions (solutions/)", "solutions", SOLUTIONS_DIR),
+    ("Notepad Content (notepad.py)", "notepad", NOTEPAD_PATH),
+    ("Progress Data (progress.json)", "progress", PROGRESS_JSON_PATH),
+    ("Session Config (config.ini)", "config", CONFIG_FILE_PATH),
+    ("Puzzle Context (.context.json)", "context", _utils.CONTEXT_FILE_PATH)
+]
+
+def _perform_clear(items_to_clear: list[str]):
+    """Helper function to delete files and directories."""
+    logger = logging.getLogger(__name__)
+    cleared_something = False
+
+    for display_name, internal_id, path in CLEARABLE_ITEMS:
+        if internal_id in items_to_clear:
+            try:
+                if path.is_dir():
+                    shutil.rmtree(path)
+                    click.secho(f"🗑️  Removed directory: {path}", fg="yellow")
+                    # Recreate directory with .gitkeep
+                    path.mkdir(exist_ok=True)
+                    gitkeep_path = path / ".gitkeep"
+                    if not gitkeep_path.exists():
+                        gitkeep_path.touch()
+
+                elif path.is_file():
+                    if internal_id == "notepad":
+                        path.write_text("") # Clear instead of deleting
+                        click.secho(f"🗑️  Cleared file: {path}", fg="yellow")
+                    else:
+                        path.unlink()
+                        click.secho(f"🗑️  Removed file: {path}", fg="yellow")
+
+
+                cleared_something = True
+
+            except FileNotFoundError:
+                click.secho(f"ℹ️  Could not clear '{display_name}'. Already removed.", fg="cyan")
+            except Exception as e:
+                logger.error(f"Failed to clear {path}: {e}")
+
+    if cleared_something:
+        click.secho("\n✅ Clear operation complete.", fg="green")
+    else:
+        click.secho("\nNo items were selected to be cleared.", fg="yellow")
+
+@cli.command()
+@click.option("--all", "clear_all", is_flag=True, help="Clear all data without the interactive prompt.")
+def rm(clear_all):
+    """
+    Clears cached data, logs, and other generated files.
+
+    Lauches an interactive screen to select what to clear.
+    Use --all to clear everything non-interactively.
+    """
+    logger = logging.getLogger(__name__)
+
+    if clear_all:
+        click.secho("You are about to permanently delete all cached data, logs, solutions, and configs.", fg="red", bold=True)
+        if not click.confirm("Are you absolutely sure you want to proceed?"):
+            click.echo("Clear operation cancelled.")
+            return
+        all_item_ids = [item[1] for item in CLEARABLE_ITEMS]
+        _perform_clear(all_item_ids)
+        return
+
+    # Prepare items for the TUI: (Display Name, internal_id)
+    app_items = [(item[0], item[1]) for item in CLEARABLE_ITEMS]
+    app = ClearApp(items_to_clear=app_items)
+    app.run()
+
+    selected_ids = app.selected_for_deletion
+    if not selected_ids:
+        click.echo("No items selected. Operation cancelled.")
+        return
+
+    click.echo("\nYou have selected the following items for deletion:")
+    for display_name, internal_id, _ in CLEARABLE_ITEMS:
+        if internal_id in selected_ids:
+            click.secho(f"  - {display_name}", fg="yellow")
+
+    if not click.confirm("\nAre you sure you want to permanently delete these items?"):
+        click.echo("Clear operation cancelled.")
+        return
+
+    _perform_clear(selected_ids)
+
 
 if __name__ == "__main__":
     cli()

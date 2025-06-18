@@ -8,6 +8,16 @@ from rich.text import Text
 class StatsApp(App):
     """An interactive TUI app to view Advent of Code stats."""
 
+    DESIGN_SYSTEM = None
+    COMMAND_PALETTE = False
+    ENABLE_COMMAND_PALETTE = False
+
+    CSS = """
+    App, Screen {
+        background: transparent;
+    }
+    """
+
     BINDINGS = [
         Binding(key="q", action="quit", description="Quit"),
         Binding(key="left", action="scroll_left", description="Left"),
