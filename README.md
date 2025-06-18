@@ -164,7 +164,8 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 | `aoc text` | Displays the formatted puzzle description for the current context. |
 | `aoc input` | Displays the raw puzzle input for the current context. |
 | `aoc run [-t]` | Executes the `notepad.py` script. `-t` times the code inside the `aoc.timed()` block. |
-| `aoc perf` | Runs all saved solutions and displays a performance benchmark report. |
+| `aoc perf [--timeout --force]` | Runs all saved solutions and displays a performance benchmark report. Results are cached. |
+| `aoc plot` | Displays an ASCII bar chart of cached performance data. |
 | `aoc load <p> [-f]` | Loads a saved solution for the current context into `notepad.py`. `<p>` is part 1 or 2. |
 | `aoc list` | Lists all your archived solutions from the `solutions/` directory. |
 | `aoc clear` | Clears all content from `notepad.py`. |

@@ -13,6 +13,7 @@ import re
 import os
 import statistics
 from aoc import _utils
+import collections
 
 # --- PATHS & CONFIG ---
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -23,6 +24,7 @@ SOLUTIONS_DIR = PROJECT_ROOT / "solutions"
 NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"
 TEMPLATES_DIR = PROJECT_ROOT / ".templates"
 PROGRESS_JSON_PATH = PROJECT_ROOT / "progress.json"
+PERF_CACHE_PATH = CACHE_DIR / "performance.json"
 
 def setup_logging(verbose: bool):
     """Configures file and console logging."""
@@ -643,73 +645,9 @@ def rm(clear_all):
 
     _perform_clear(selected_ids)
 
-@cli.command()
-def perf():
-    """
-    Runs all saved solutions and measures their performance.
-    """
-    logger = logging.getLogger(__name__)
-    click.secho("--- Running Performance Benchmark ---", bold=True)
-
-    solution_files = sorted(SOLUTIONS_DIR.glob("**/part_*.py"))
-    if not solution_files:
-        click.secho("No solutions found to benchmark.", fg="yellow")
-        return
-
-    results = []
-    time_regex = re.compile(r"Execution time: ([\d.]+) ms")
-
-    env = os.environ.copy()
-    env["AOC_TIME_IT"] = "true"
-
-    with click.progressbar(solution_files, label="Benchmarking solutions") as bar:
-        for path in bar:
-            try:
-                year = int(path.parts[-3])
-                day = int(path.parts[-2])
-                part_str = path.stem
-            except (IndexError, ValueError):
-                logger.warning(f"Could not parse year/day from path: {path}. Skipping.")
-                continue
-
-            # Set context for the run
-            _utils.write_context(year, day)
-
-            try:
-                result = subprocess.run(
-                    ["python", str(path)],
-                    capture_output=True, text=True, env=env, check=False
-                )
-
-                if result.returncode != 0:
-                    logger.error(f"Solution {year}-{day:02d} {part_str} failed to run. Error:\n{result.stderr}")
-                    continue
-
-                output = result.stdout
-                match = time_regex.search(output)
-
-                if match:
-                    time_ms = float(match.group(1))
-                    results.append({
-                        "year": year,
-                        "day": day,
-                        "part": part_str.split('_')[1],
-                        "time": time_ms
-                    })
-                else:
-                    logger.warning(f"Could not parse execution time for {path}. Skipping.")
-
-            except Exception as e:
-                logger.error(f"An unexpected error occurred while running {path}: {e}")
-
-    if not results:
-        click.secho("\nNo solutions could be benchmarked.", fg="red")
-        return
-
-    # --- Display Results ---
+def _display_perf_results(results):
+    """Helper to display performance tables."""
     click.secho("\n\n--- Performance Results ---", bold=True)
-
-    # Detailed table
     headers = [
         click.style("Year", bold=True),
         click.style("Day", bold=True),
@@ -719,7 +657,6 @@ def perf():
     table_data = [[r['year'], r['day'], r['part'], f"{r['time']:.2f}"] for r in results]
     click.echo(tabulate(table_data, headers=headers, tablefmt="psql"))
 
-    # Summary Statistics
     if results:
         times = [r['time'] for r in results]
         stats_data = [
@@ -733,6 +670,122 @@ def perf():
         click.secho("\n--- Summary Statistics ---", bold=True)
         click.echo(tabulate(stats_data, headers=["Metric", "Value"], tablefmt="psql"))
 
+@cli.command()
+@click.option("-f", "--force", is_flag=True, help="Ignore the cache and re-run all benchmarks.")
+@click.option("--timeout", type=int, default=None, help="Timeout in seconds for each solution run.")
+def perf(force, timeout):
+    """
+    Runs all saved solutions and measures their performance.
+    Results are cached. Use --force to re-run.
+    """
+    logger = logging.getLogger(__name__)
+
+    if not force and PERF_CACHE_PATH.exists():
+        click.secho("--- Loading Performance Results from Cache ---", bold=True)
+        with open(PERF_CACHE_PATH, 'r') as f:
+            results = json.load(f)
+        _display_perf_results(results)
+        click.echo("\nUse --force to re-run benchmarks.")
+        return
+
+    click.secho("--- Running Performance Benchmark ---", bold=True)
+    solution_files = sorted(SOLUTIONS_DIR.glob("**/part_*.py"))
+    if not solution_files:
+        click.secho("No solutions found to benchmark.", fg="yellow")
+        return
+
+    results = []
+    time_regex = re.compile(r"Execution time: ([\d.]+) ms")
+    env = os.environ.copy()
+    env["AOC_TIME_IT"] = "true"
+
+    with click.progressbar(solution_files, label="Benchmarking solutions") as bar:
+        for path in bar:
+            try:
+                year = int(path.parts[-3])
+                day = int(path.parts[-2])
+                part_str = path.stem
+            except (IndexError, ValueError):
+                logger.warning(f"Could not parse year/day from path: {path}. Skipping.")
+                continue
+
+            _utils.write_context(year, day)
+            try:
+                result = subprocess.run(
+                    ["python", str(path)],
+                    capture_output=True, text=True, env=env, check=False, timeout=timeout
+                )
+                if result.returncode != 0:
+                    logger.error(f"Solution {year}-{day:02d} {part_str} failed. Error:\n{result.stderr}")
+                    continue
+                match = time_regex.search(result.stdout)
+                if match:
+                    results.append({
+                        "year": year, "day": day, "part": part_str.split('_')[1],
+                        "time": float(match.group(1))
+                    })
+                else:
+                    logger.warning(f"Could not parse execution time for {path}. Skipping.")
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Solution {year}-{day:02d} {part_str} timed out after {timeout}s. Skipping.")
+            except Exception as e:
+                logger.error(f"An unexpected error occurred while running {path}: {e}")
+
+    # Save results to cache
+    with open(PERF_CACHE_PATH, 'w') as f:
+        json.dump(results, f, indent=2)
+
+    if not results:
+        click.secho("\nNo solutions could be benchmarked.", fg="red")
+        return
+
+    _display_perf_results(results)
+
+def _draw_ascii_barchart(data, title):
+    """Helper to draw a simple ASCII bar chart."""
+    click.secho(f"\n--- {title} ---", bold=True)
+
+    labels = [item[0] for item in data]
+    values = [item[1] for item in data]
+
+    if not values:
+        click.echo("No data to plot.")
+        return
+
+    max_val = max(values)
+    max_label_len = max(len(label) for label in labels)
+    bar_width = 40
+
+    for label, val in data:
+        bar_len = int((val / max_val) * bar_width) if max_val > 0 else 0
+        bar = '█' * bar_len
+        click.echo(f"{label.ljust(max_label_len)} | {val:8.2f} ms | {bar}")
+
+@cli.command()
+def plot():
+    """Displays a plot of the cached performance data."""
+    if not PERF_CACHE_PATH.exists():
+        click.secho("Performance cache not found.", fg="red")
+        click.echo("Please run 'aoc perf' first to generate performance data.")
+        return
+
+    with open(PERF_CACHE_PATH, 'r') as f:
+        results = json.load(f)
+
+    if not results:
+        click.secho("No performance data found in cache.", fg="yellow")
+        return
+
+    # Aggregate data: Average time per year
+    yearly_times = collections.defaultdict(list)
+    for res in results:
+        yearly_times[str(res['year'])].append(res['time'])
+
+    avg_times_per_year = []
+    for year, times in sorted(yearly_times.items()):
+        avg_times_per_year.append((year, statistics.mean(times)))
+
+    _draw_ascii_barchart(avg_times_per_year, "Performance Profile: Average Time per Year")
 
 if __name__ == "__main__":
     cli()

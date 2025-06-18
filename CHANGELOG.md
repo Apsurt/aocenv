@@ -14,9 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A new `aoc perf` command to run all saved solutions, measure their performance, and display a detailed report with statistics.
 - A powerful, fluent input parsing system via `aoc.get_input_parser()`. This allows for chainable method calls to easily parse complex inputs, with support for regex, NumPy, and composite parsing.
 - A new `aoc.tools` submodule containing a toolkit of helpers for common Advent of Code patterns. Includes a `Grid` class, graph algorithms (`bfs`, `dfs`, `dijkstra`), geometry functions (`bresenham_line`, `shoelace_area`), a `@memoize` decorator, and more.
+- A new `aoc plot` command that displays an ASCII bar chart of the average solution time per year from the cached performance data.
 
 ### Changed
 - The `aoc run -t` command now only times the code inside an `aoc.timed()` context block, providing more accurate solution timing by excluding I/O and interpreter overhead.
+- The `aoc perf` command now caches its results to `.cache/performance.json` to provide instantaneous results on subsequent runs. A `--force` flag was added to re-run the benchmarks.
 
 ---
 
