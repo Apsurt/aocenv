@@ -5,6 +5,7 @@ import time
 from contextlib import contextmanager
 import click
 from . import _utils
+from .parsers import InputParser
 
 # --- Test Mode Initialization ---
 # Check for environment variables to activate test mode.
@@ -27,6 +28,12 @@ else:
 
 
 # --- PUBLIC FUNCTIONS ---
+def get_input_parser() -> InputParser:
+    """
+    Returns a fluent InputParser object for advanced input processing.
+    """
+    return InputParser(get_input())
+
 def get_instructions() -> str:
     """
     Gets the puzzle instructions for the current context (year, day).

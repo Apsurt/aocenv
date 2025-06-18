@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - A new `aoc.timed()` context manager to the `aoc` module for precise timing of solution code.
 - A new `aoc perf` command to run all saved solutions, measure their performance, and display a detailed report with statistics.
+- A powerful, fluent input parsing system via `aoc.get_input_parser()`. This allows for chainable method calls to easily parse complex inputs, with support for regex, NumPy, and composite parsing.
 
 ### Changed
 - The `aoc run -t` command now only times the code inside an `aoc.timed()` context block, providing more accurate solution timing by excluding I/O and interpreter overhead.

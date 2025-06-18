@@ -161,11 +161,10 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 
 ## 🐍 Module Reference (`aoc`)
 
-These functions are available within your `notepad.py` script after `import aoc`. The `year` and `day` are determined by the context you set via the CLI.
-
 | Member | Description |
 | --- | --- |
-| `aoc.get_input()` | Returns the puzzle input as a string for the current context. |
+| `aoc.get_input()` | Returns the puzzle input as a raw string for the current context. |
+| `aoc.get_input_parser()`| Returns a powerful, chainable `InputParser` object for advanced parsing. |
 | `aoc.submit(answer, part=P)` | Submits your `answer` for Part `P` (1 or 2). Returns a formatted string with the server's response. |
 | `aoc.bind(part=P, overwrite=F)` | Archives `notepad.py` for Part `P`. Can trigger auto-commit and auto-clear. `F` is `True` or `False`. |
 | `aoc.clear()` | Clears all content from `notepad.py`. |

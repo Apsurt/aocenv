@@ -7,16 +7,22 @@ import aoc
 
 
 # --- Puzzle Logic ---
-# Get the puzzle input. The 'get_input' function will automatically
-# use the context that has been set.
-puzzle_input = aoc.get_input()
+#
+# Use the InputParser for powerful and flexible input parsing.
+# Example: Get a list of integers
+# numbers = aoc.get_input_parser().lines().to_ints().get()
+
+# Example: Get a grid of characters
+# grid = aoc.get_input_parser().to_grid()
+
+puzzle_input = aoc.get_input() # Keep simple get_input for basic cases
 
 # Your solution logic here...
-def solve():
+def solve(p_input):
     return
 
 with aoc.timed():
-    answer = solve()
+    answer = solve(puzzle_input)
 
 # --- Submission ---
 # After solving, uncomment the following line and specify the part
@@ -28,3 +34,8 @@ if answer is not None:
 # --- Binding ---
 # To save your solution, you can use aoc.bind(part=1)
 # aoc.bind(part=1)
+
+# --- Templates ---
+# If you want to clean the default template from comment
+# and things that you dont want, edit this file and run:
+# aoc template save -f default
