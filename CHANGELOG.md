@@ -13,6 +13,12 @@ This will become version 1.3.0.
 
 ### Added
 - **Automatic Git Commits**: Added an optional feature, configurable via `aoc setup`, to automatically `git commit` a solution with a standardized message (e.g., `feat(2025-16): Solve Part 1`) after a successful `bind`.
+- **Persistent Puzzle Context**: Introduced a new system where the puzzle `year` and `day` are set once and persist across all commands.
+- **New `aoc context` Command**: Added a `context` command group to manage the persistent context.
+  - `aoc context set --year Y --day D`: Sets and saves the active puzzle context.
+  - `aoc context show`: Displays the current context.
+  - `aoc context clear`: Clears the saved context, causing the tool to default to the latest puzzle.
+- The active context is now stored in a `.context.json` file, which has been added to `.gitignore`.
 
 ### Fixed
 - Corrected `.gitignore` logic to allow `progress.json` to be committed, which is necessary for the auto-commit feature to function correctly.
