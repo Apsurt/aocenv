@@ -12,6 +12,7 @@ venv/
 *.egg-info/
 dist/
 build/
+env_src/uv.lock
 
 # Application specific
 .cache/
