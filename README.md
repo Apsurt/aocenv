@@ -8,16 +8,15 @@ It provides a robust command-line interface (CLI) and a Python module to handle 
 ## ✨ Features
 
 * **Interactive Setup**: A one-time `aoc setup` wizard to securely configure your session cookie and preferences.
-* **Local Caching**: All puzzle inputs, texts, answers, and submissions are cached locally. This makes the tool incredibly fast and respects the AoC servers by minimizing requests.
-* **Full CLI Control**: Manage your entire workflow from the terminal with intuitive commands.
-* **Boilerplate Generation**: Kickstart new puzzles instantly with the `aoc start` command.
-* **Persistent Context**: Set your target puzzle once with `aoc context set` and all commands will automatically use that year and day.
-* **Interactive Stats Viewer**: Get a beautiful, scrollable overview of your progress across all years with `aoc stats`.
 * **Solution Management**: Automatically or manually archive your code with `aoc.bind()` and load it back into your workspace with `aoc load`.
-* **Safe & Robust**: Built-in safety checks, confirmation prompts for destructive actions.
-* **Helpful Logging**: Use the `-v` flag to see what the tool is doing behind the scenes.
+* **Boilerplate Generation**: Kickstart new puzzles instantly with the `aoc start` command.
 * **Custom Templates**: Save and load your own boilerplate templates for different kinds of puzzles.
 * **Automatic Git Commits**: Optionally auto-commit your solutions with a standardized message upon successful binding.
+* **Full CLI Control**: Manage your entire workflow from the terminal with intuitive commands.
+* **Stats Viewer**: Get a beautiful, overview of your progress across all years with `aoc stats`.
+* **Local Caching**: All puzzle inputs, texts, answers, and submissions are cached locally. This makes the tool incredibly fast and respects the AoC servers by minimizing requests.
+* **Safe & Robust**: Built-in safety checks, confirmation prompts for destructive actions.
+* **Helpful Logging**: Use the `-v` flag to see what the tool is doing behind the scenes.
 
 ## 🚀 Getting Started
 
@@ -147,7 +146,7 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 | `aoc setup` | Runs the interactive wizard to configure your session cookie and preferences. |
 | `aoc context <sub-cmd>` | Manages the persistent puzzle context (`set`, `show`, `clear`). |
 | `aoc sync [--force]` | Scrapes your progress from AoC, caching all puzzle texts and answers. |
-| `aoc stats` | Launches the interactive, scrollable TUI to view your progress stats. |
+| `aoc stats` | Shows table of all your stars to check your progress stats. |
 | `aoc start [NAME] [-f]` | Populates `notepad.py` with a template. Defaults to `default`. |
 | `aoc text` | Displays the formatted puzzle description for the current context. |
 | `aoc input` | Displays the raw puzzle input for the current context. |
@@ -157,6 +156,7 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 | `aoc clear` | Clears all content from `notepad.py`. |
 | `aoc template <sub-cmd>` | Manages custom templates (`save`, `load`, `list`, `delete`). |
 | `aoc test <sub-cmd>` | Manages test cases for puzzles (`add`, `list`, `delete`, `run`). |
+| `aoc rm [--all]` | Interactively select and clear cached data, logs, solutions, and configs. `--all` clears everything. |
 
 ## 🐍 Module Reference (`aoc`)
 

@@ -19,9 +19,16 @@ This will become version 1.3.0.
   - `aoc context show`: Displays the current context.
   - `aoc context clear`: Clears the saved context, causing the tool to default to the latest puzzle.
 - The active context is now stored in a `.context.json` file, which has been added to `.gitignore`.
+- **New `aoc rm` Command**: It launches prompt that allows you to select specific categories of data to delete (e.g., cache, logs, solutions). An `--all` flag is provided to clear everything all at once after a confirmation prompt.
+
+### Changed
+- `aoc stats` is now static and displayed using `tabulate`.
 
 ### Fixed
 - Corrected `.gitignore` logic to allow `progress.json` to be committed, which is necessary for the auto-commit feature to function correctly.
+
+### Removed
+- Removed the `textual` dependency from the project, simplifying the environment.
 
 ---
 
