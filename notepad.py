@@ -15,11 +15,13 @@ import aoc
 # Example: Get a grid of characters
 # grid = aoc.get_input_parser().to_grid()
 
-puzzle_input = aoc.get_input() # Keep simple get_input for basic cases
+puzzle_input = aoc.get_input()  # Keep simple get_input for basic cases
+
 
 # Your solution logic here...
 def solve(p_input):
     return
+
 
 with aoc.timed():
     answer = solve(puzzle_input)

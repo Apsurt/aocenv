@@ -35,6 +35,7 @@ def get_input_parser() -> InputParser:
     """
     return InputParser(get_input())
 
+
 def get_instructions() -> str:
     """
     Gets the puzzle instructions for the current context (year, day).
@@ -43,6 +44,7 @@ def get_instructions() -> str:
         A formatted string of the puzzle instructions for the terminal.
     """
     return _utils.get_aoc_data(year, day, data_type="instructions")
+
 
 def get_input() -> str:
     """
@@ -56,6 +58,7 @@ def get_input() -> str:
 
     return _utils.get_aoc_data(year, day, data_type="input")
 
+
 def submit(answer, part: int) -> str:
     """
     Submits an answer for the current puzzle context.
@@ -65,14 +68,18 @@ def submit(answer, part: int) -> str:
     logger = logging.getLogger(__name__)
 
     if TEST_MODE:
-        logger.info(f"TEST MODE: Checking answer '{answer}' against expected '{_test_expected_answer}'.")
+        logger.info(
+            f"TEST MODE: Checking answer '{answer}' against expected '{_test_expected_answer}'."
+        )
         str_answer = str(answer)
         str_expected = str(_test_expected_answer)
 
         if str_answer == str_expected:
             return "✅ PASSED"
         else:
-            return f"❌ FAILED: Got '{str_answer}', but expected '{_test_expected_answer}'"
+            return (
+                f"❌ FAILED: Got '{str_answer}', but expected '{_test_expected_answer}'"
+            )
 
     if part not in [1, 2]:
         err_msg = "The 'part' argument for submit() must be 1 or 2."
@@ -96,6 +103,7 @@ def submit(answer, part: int) -> str:
         logger.warning(f"Answer is incorrect. Response: {response_text}")
         return f"❌ {response_text}"
 
+
 def bind(part: int, overwrite: bool = False):
     """
     Archives the code from notepad.py to the solutions directory.
@@ -118,7 +126,9 @@ def bind(part: int, overwrite: bool = False):
         return
 
     if dest_path.exists() and not overwrite:
-        logger.warning(f"Solution already exists at {dest_path}. Use bind(overwrite=True, part={part}) to replace it.")
+        logger.warning(
+            f"Solution already exists at {dest_path}. Use bind(overwrite=True, part={part}) to replace it."
+        )
         return
 
     try:
@@ -140,6 +150,7 @@ def bind(part: int, overwrite: bool = False):
     except Exception as e:
         logger.error(f"Failed to bind solution: {e}")
 
+
 def clear():
     """Clears all content from the notepad.py file."""
     logger = logging.getLogger(__name__)
@@ -147,6 +158,7 @@ def clear():
     if notepad_path.exists():
         notepad_path.write_text("")
         logger.info("notepad.py has been cleared.")
+
 
 @contextmanager
 def timed():

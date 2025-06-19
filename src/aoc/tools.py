@@ -5,37 +5,46 @@ import functools
 import math
 from typing import Any, Callable, Dict, Generator, List, Tuple, TypeVar, Union
 
-Node = TypeVar('Node')
+Node = TypeVar("Node")
 
 # --- Performance & Recursion Helpers ---
+
 
 def memoize(func: Callable) -> Callable:
     """A decorator to cache the results of a function."""
     cache = {}
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         key = (args, frozenset(kwargs.items()))
         if key not in cache:
             cache[key] = func(*args, **kwargs)
         return cache[key]
+
     return wrapper
+
 
 # --- Common Data Structures ---
 
+
 class TreeNode:
     """A simple TreeNode for building tree structures."""
+
     def __init__(self, value: Any, parent: TreeNode | None = None):
         self.value = value
         self.parent = parent
-        self.children: List['TreeNode'] = []
+        self.children: List["TreeNode"] = []
 
-    def add_child(self, child_node: 'TreeNode'):
+    def add_child(self, child_node: "TreeNode"):
         self.children.append(child_node)
+
 
 # --- Grid & Geometry Tools ---
 
+
 class Grid:
     """A helper class for 2D grids, providing easy access and neighbor finding."""
+
     def __init__(self, grid_data: List[List[Any]]):
         self.grid = grid_data
         self.height = len(grid_data)
@@ -54,7 +63,9 @@ class Grid:
             for x in range(self.width):
                 yield x, y, self.grid[y][x]
 
-    def neighbors(self, x: int, y: int, diagonal: bool = False) -> Generator[Tuple[int, int], None, None]:
+    def neighbors(
+        self, x: int, y: int, diagonal: bool = False
+    ) -> Generator[Tuple[int, int], None, None]:
         deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         if diagonal:
             deltas.extend([(-1, -1), (-1, 1), (1, -1), (1, 1)])
@@ -64,11 +75,14 @@ class Grid:
             if 0 <= nx < self.width and 0 <= ny < self.height:
                 yield nx, ny
 
+
 def manhattan_distance(p1: Tuple[int, int], p2: Tuple[int, int]) -> int:
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
+
 def add_vec(v1: Tuple[int, int], v2: Tuple[int, int]) -> Tuple[int, int]:
     return v1[0] + v2[0], v1[1] + v2[1]
+
 
 def shoelace_area(vertices: List[Tuple[int, int]]) -> float:
     area = 0.0
@@ -78,6 +92,7 @@ def shoelace_area(vertices: List[Tuple[int, int]]) -> float:
         area += vertices[i][0] * vertices[j][1]
         area -= vertices[j][0] * vertices[i][1]
     return abs(area) / 2.0
+
 
 def bresenham_line(p1: Tuple[int, int], p2: Tuple[int, int]) -> List[Tuple[int, int]]:
     x1, y1 = p1
@@ -100,7 +115,9 @@ def bresenham_line(p1: Tuple[int, int], p2: Tuple[int, int]) -> List[Tuple[int, 
             y1 += sy
     return points
 
+
 # --- Graph Algorithms ---
+
 
 def bfs(graph: Dict[Node, List[Node]], start_node: Node) -> Generator[Node, None, None]:
     visited = {start_node}
@@ -112,6 +129,7 @@ def bfs(graph: Dict[Node, List[Node]], start_node: Node) -> Generator[Node, None
             if neighbor not in visited:
                 visited.add(neighbor)
                 queue.append(neighbor)
+
 
 def dfs(graph: Dict[Node, List[Node]], start_node: Node) -> Generator[Node, None, None]:
     visited = set()
@@ -126,7 +144,10 @@ def dfs(graph: Dict[Node, List[Node]], start_node: Node) -> Generator[Node, None
                 if neighbor not in visited:
                     stack.append(neighbor)
 
-def dijkstra(graph: Dict[Node, List[Tuple[Node, int]]], start: Node, end: Node) -> Tuple[Union[int, float], List[Node]]:
+
+def dijkstra(
+    graph: Dict[Node, List[Tuple[Node, int]]], start: Node, end: Node
+) -> Tuple[Union[int, float], List[Node]]:
     """
     Finds the shortest path in a weighted graph using Dijkstra's algorithm.
 
@@ -157,9 +178,11 @@ def dijkstra(graph: Dict[Node, List[Tuple[Node, int]]], start: Node, end: Node) 
             if neighbor not in visited:
                 heapq.heappush(pq, (dist + weight, neighbor, path))
 
-    return float('inf'), []
+    return float("inf"), []
+
 
 # --- Interval Tools ---
+
 
 def merge_intervals(intervals: List[List[int]]) -> List[List[int]]:
     if not intervals:
@@ -174,7 +197,9 @@ def merge_intervals(intervals: List[List[int]]) -> List[List[int]]:
             merged.append(current)
     return merged
 
+
 # --- Advanced Math Tools ---
+
 
 def chinese_remainder_theorem(n: List[int], a: List[int]) -> int:
     """
@@ -188,7 +213,9 @@ def chinese_remainder_theorem(n: List[int], a: List[int]) -> int:
         sum_val += a_i * pow(p, -1, n_i) * p
     return sum_val % prod
 
+
 # --- Tree Traversal Algorithms ---
+
 
 def pre_order_traversal(root: TreeNode) -> Generator[TreeNode, None, None]:
     """
@@ -199,6 +226,7 @@ def pre_order_traversal(root: TreeNode) -> Generator[TreeNode, None, None]:
     for child in root.children:
         yield from pre_order_traversal(child)
 
+
 def post_order_traversal(root: TreeNode) -> Generator[TreeNode, None, None]:
     """
     Performs a post-order traversal of a tree, yielding each node.
@@ -207,6 +235,7 @@ def post_order_traversal(root: TreeNode) -> Generator[TreeNode, None, None]:
     for child in root.children:
         yield from post_order_traversal(child)
     yield root
+
 
 def in_order_traversal(root: TreeNode) -> Generator[TreeNode, None, None]:
     """

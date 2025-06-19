@@ -21,12 +21,13 @@ CONTEXT_FILE_PATH = PROJECT_ROOT / ".context.json"
 PROGRESS_JSON_PATH = PROJECT_ROOT / "progress.json"
 AOC_BASE_URL = "https://adventofcode.com"
 
+
 def read_context() -> tuple[int, int] | None:
     """Reads the persisted year and day from the context file."""
     if not CONTEXT_FILE_PATH.exists():
         return None
     try:
-        with open(CONTEXT_FILE_PATH, 'r') as f:
+        with open(CONTEXT_FILE_PATH, "r") as f:
             data = json.load(f)
             if "year" in data and "day" in data:
                 return data["year"], data["day"]
@@ -35,10 +36,12 @@ def read_context() -> tuple[int, int] | None:
         return None
     return None
 
+
 def write_context(year: int, day: int):
     """Saves the year and day to the context file."""
-    with open(CONTEXT_FILE_PATH, 'w') as f:
+    with open(CONTEXT_FILE_PATH, "w") as f:
         json.dump({"year": year, "day": day}, f, indent=2)
+
 
 def clear_context():
     """Removes the context file."""
@@ -48,6 +51,7 @@ def clear_context():
 
 # --- HELPER FUNCTIONS ---
 
+
 def _read_answers_cache(year: int, day: int) -> dict:
     """Reads the answers.json cache for a given day."""
     cache_file = CACHE_DIR / str(year) / f"{day:02d}" / "answers.json"
@@ -55,18 +59,20 @@ def _read_answers_cache(year: int, day: int) -> dict:
         # Return the default structure if the file doesn't exist
         return {
             "part_1": {"correct_answer": None, "submissions": []},
-            "part_2": {"correct_answer": None, "submissions": []}
+            "part_2": {"correct_answer": None, "submissions": []},
         }
-    with open(cache_file, 'r') as f:
+    with open(cache_file, "r") as f:
         return json.load(f)
+
 
 def _write_answers_cache(year: int, day: int, data: dict):
     """Writes data to the answers.json cache for a given day."""
     cache_dir = CACHE_DIR / str(year) / f"{day:02d}"
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / "answers.json"
-    with open(cache_file, 'w') as f:
+    with open(cache_file, "w") as f:
         json.dump(data, f, indent=2)
+
 
 def get_session_cookie() -> str | None:
     """Reads the session cookie from the config file."""
@@ -76,6 +82,7 @@ def get_session_cookie() -> str | None:
     config.read(CONFIG_FILE_PATH)
     return config.get("user", "session_cookie", fallback=None)
 
+
 def get_bool_config_setting(key: str, default: bool = False) -> bool:
     """Reads a boolean setting from the [user] section of the config file."""
     if not CONFIG_FILE_PATH.exists():
@@ -84,13 +91,16 @@ def get_bool_config_setting(key: str, default: bool = False) -> bool:
     config.read(CONFIG_FILE_PATH)
     return config.getboolean("user", key, fallback=default)
 
+
 def get_aoc_data(year: int, day: int, data_type: str) -> str:
     """
     Fetches data from the website, with robust caching.
     data_type can be 'instructions' or 'input'.
     """
     # Determine the correct URL path ('input' or just the day page)
-    url_path = f"/{year}/day/{day}/input" if data_type == "input" else f"/{year}/day/{day}"
+    url_path = (
+        f"/{year}/day/{day}/input" if data_type == "input" else f"/{year}/day/{day}"
+    )
 
     # Determine the cache filename
     file_extension = "md" if data_type == "instructions" else "txt"
@@ -117,7 +127,7 @@ def get_aoc_data(year: int, day: int, data_type: str) -> str:
     content = response.text
 
     if data_type == "instructions":
-            content = format_instructions(content)
+        content = format_instructions(content)
 
     # 3. Save to cache
     logger.info(f"Saving {data_type} for {year}-{day} to cache.\n")
@@ -127,31 +137,42 @@ def get_aoc_data(year: int, day: int, data_type: str) -> str:
     # After fetching, check if we should also cache answers for solved puzzles
     try:
         if PROGRESS_JSON_PATH.exists():
-            with open(PROGRESS_JSON_PATH, 'r') as f:
+            with open(PROGRESS_JSON_PATH, "r") as f:
                 progress_data = json.load(f).get("progress", {})
 
             stars = progress_data.get(str(year), {}).get(str(day), 0)
 
             if stars > 0:
                 answers_cache = _read_answers_cache(year, day)
-                part1_answered = answers_cache.get("part_1", {}).get("correct_answer") is not None
-                part2_answered = answers_cache.get("part_2", {}).get("correct_answer") is not None
+                part1_answered = (
+                    answers_cache.get("part_1", {}).get("correct_answer") is not None
+                )
+                part2_answered = (
+                    answers_cache.get("part_2", {}).get("correct_answer") is not None
+                )
 
                 # Only scrape if we are missing at least one answer
                 if not (part1_answered and part2_answered):
-                    logger.info(f"Fetching correct answers for solved puzzle {year}-{day}...")
+                    logger.info(
+                        f"Fetching correct answers for solved puzzle {year}-{day}..."
+                    )
                     correct_answers = scrape_day_page_for_answers(year, day)
                     if correct_answers:
                         for part, answer in correct_answers.items():
                             part_key = f"part_{part}"
-                            if answers_cache.get(part_key, {}).get("correct_answer") is None:
+                            if (
+                                answers_cache.get(part_key, {}).get("correct_answer")
+                                is None
+                            ):
                                 answers_cache[part_key]["correct_answer"] = answer
                         _write_answers_cache(year, day, answers_cache)
     except Exception as e:
-        logger.warning(f"Could not check for/cache correct answers during data fetch: {e}")
-
+        logger.warning(
+            f"Could not check for/cache correct answers during data fetch: {e}"
+        )
 
     return content
+
 
 def format_instructions(html_content: str) -> str:
     """Converts puzzle instruction HTML to readable terminal text."""
@@ -159,12 +180,13 @@ def format_instructions(html_content: str) -> str:
     h.body_width = 80  # Wrap text at 80 characters
     # Extract only the content of the <article> tags
     # This avoids printing the whole HTML page header/footer
-    start = html_content.find('<article')
-    end = html_content.rfind('</article>') + len('</article>')
+    start = html_content.find("<article")
+    end = html_content.rfind("</article>") + len("</article>")
     if start != -1 and end != -1:
         html_content = html_content[start:end]
 
     return h.handle(html_content)
+
 
 def get_latest_puzzle_date() -> tuple[int, int]:
     """
@@ -190,6 +212,7 @@ def get_latest_puzzle_date() -> tuple[int, int]:
 
     return year, day
 
+
 def post_answer(year: int, day: int, part: int, answer) -> str:
     """
     Submits an answer, with full caching support.
@@ -204,13 +227,19 @@ def post_answer(year: int, day: int, part: int, answer) -> str:
     # Check if this exact answer has been submitted before
     for sub in cached_data[part_key]["submissions"]:
         if sub["answer"] == str_answer:
-            logger.info(f"Answer '{str_answer}' found in cache. Returning cached result.")
+            logger.info(
+                f"Answer '{str_answer}' found in cache. Returning cached result."
+            )
             return sub["result"]
 
     # Check if we already know the correct answer
     if cached_data[part_key]["correct_answer"] is not None:
-        logger.warning(f"Correct answer for Part {part} is already known. Submission cancelled.")
-        return "You don't seem to be solving the right level. Did you already complete it?"
+        logger.warning(
+            f"Correct answer for Part {part} is already known. Submission cancelled."
+        )
+        return (
+            "You don't seem to be solving the right level. Did you already complete it?"
+        )
 
     # 2. If not in cache, proceed with web submission
     logger.info(f"Answer '{str_answer}' not in cache. Submitting to AoC website.")
@@ -231,10 +260,9 @@ def post_answer(year: int, day: int, part: int, answer) -> str:
 
     # 3. Save the new result to the cache
     logger.info("Saving new submission result to cache.")
-    cached_data[part_key]["submissions"].append({
-        "answer": str_answer,
-        "result": response_text
-    })
+    cached_data[part_key]["submissions"].append(
+        {"answer": str_answer, "result": response_text}
+    )
     # If correct, also store it in the 'correct_answer' field
     if "That's the right answer!" in response_text:
         cached_data[part_key]["correct_answer"] = str_answer
@@ -242,6 +270,7 @@ def post_answer(year: int, day: int, part: int, answer) -> str:
     _write_answers_cache(year, day, cached_data)
 
     return response_text
+
 
 def scrape_year_progress(year: int) -> dict[int, int]:
     """
@@ -273,7 +302,7 @@ def scrape_year_progress(year: int) -> dict[int, int]:
     # Find all the day links within the calendar
     day_links = calendar.find_all("a")
     if not day_links:
-        return {} # No participation this year
+        return {}  # No participation this year
 
     for link in day_links:
         label = link.get("aria-label", "")
@@ -298,6 +327,7 @@ def scrape_year_progress(year: int) -> dict[int, int]:
             continue
 
     return progress
+
 
 def scrape_day_page_for_answers(year: int, day: int) -> dict[int, str]:
     """
@@ -338,31 +368,36 @@ def scrape_day_page_for_answers(year: int, day: int) -> dict[int, str]:
 
     return answers
 
+
 def _read_tests_cache(year: int, day: int) -> dict:
     """Reads the tests.json cache for a given day."""
     cache_file = CACHE_DIR / str(year) / f"{day:02d}" / "tests.json"
     if not cache_file.exists():
         return {"part_1": [], "part_2": []}
-    with open(cache_file, 'r') as f:
+    with open(cache_file, "r") as f:
         try:
             return json.load(f)
         except json.JSONDecodeError:
-            return {"part_1": [], "part_2": []} # Return default on file corruption
+            return {"part_1": [], "part_2": []}  # Return default on file corruption
+
 
 def _write_tests_cache(year: int, day: int, data: dict):
     """Writes test case data to the tests.json cache for a given day."""
     cache_dir = CACHE_DIR / str(year) / f"{day:02d}"
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / "tests.json"
-    with open(cache_file, 'w') as f:
+    with open(cache_file, "w") as f:
         json.dump(data, f, indent=2)
+
 
 def git_commit_solution(year: int, day: int, part: int):
     """
     Stages and commits a solution file with a standardized message.
     """
     logger = logging.getLogger(__name__)
-    solution_path = PROJECT_ROOT / "solutions" / str(year) / f"{day:02d}" / f"part_{part}.py"
+    solution_path = (
+        PROJECT_ROOT / "solutions" / str(year) / f"{day:02d}" / f"part_{part}.py"
+    )
     # Also good to commit the progress file if it has changed
     progress_path = PROJECT_ROOT / "progress.json"
 
@@ -372,7 +407,9 @@ def git_commit_solution(year: int, day: int, part: int):
         # Check if we are in a git repository and there are changes to commit
         status_check = subprocess.run(
             ["git", "status", "--porcelain", str(solution_path)],
-            capture_output=True, text=True, check=True
+            capture_output=True,
+            text=True,
+            check=True,
         )
         # If the output is empty, the file is not changed or not tracked
         if not status_check.stdout.strip():
@@ -392,8 +429,12 @@ def git_commit_solution(year: int, day: int, part: int):
         logger.info("Auto-commit successful.")
 
     except FileNotFoundError:
-        logger.error("Auto-commit failed: 'git' command not found. Is Git installed and in your PATH?")
+        logger.error(
+            "Auto-commit failed: 'git' command not found. Is Git installed and in your PATH?"
+        )
     except subprocess.CalledProcessError as e:
-        logger.error(f"Auto-commit failed: A git command failed to execute.\nError: {e.stderr}")
+        logger.error(
+            f"Auto-commit failed: A git command failed to execute.\nError: {e.stderr}"
+        )
     except Exception as e:
         logger.error(f"An unexpected error occurred during auto-commit: {e}")

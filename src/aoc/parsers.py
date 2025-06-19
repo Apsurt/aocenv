@@ -2,6 +2,7 @@ import re
 import numpy as np
 from typing import Any, Callable, List
 
+
 class InputParser:
     """A fluent interface for parsing Advent of Code puzzle inputs."""
 
@@ -32,7 +33,7 @@ class InputParser:
     def blocks(self):
         """Splits the data into blocks separated by blank lines."""
         if isinstance(self._data, str):
-            self._data = self._data.strip().split('\n\n')
+            self._data = self._data.strip().split("\n\n")
         return self
 
     def split(self, on: str):
@@ -57,17 +58,21 @@ class InputParser:
         If it has multiple, it returns a tuple of values.
         """
         compiled_pattern = re.compile(pattern)
+
         def _extractor(s: str) -> List[Any]:
             matches = compiled_pattern.findall(s)
             # If findall returns a list of tuples (multiple capture groups), it's already structured.
             # If it's a list of strings (one capture group), return as is.
             return matches
+
         self._data = self._apply_to_elements(_extractor, self._data)
         return self
 
     def findall(self, pattern: str):
         """For each string, finds all non-overlapping matches of a pattern."""
-        self._data = self._apply_to_elements(lambda s: re.findall(pattern, s), self._data)
+        self._data = self._apply_to_elements(
+            lambda s: re.findall(pattern, s), self._data
+        )
         return self
 
     def apply(self, func: Callable):
@@ -81,15 +86,16 @@ class InputParser:
         """Returns the final processed data."""
         return self._data
 
-    def to_grid(self, delimiter: str = ''):
+    def to_grid(self, delimiter: str = ""):
         """
         Parses string data into a 2D grid.
         - If the data is a single string, it becomes one grid.
         - If the data is a list of strings (blocks), it becomes a list of grids.
         """
+
         def _grid_parser(block: str) -> List[List[str]]:
             lines = block.strip().splitlines()
-            if delimiter == '':
+            if delimiter == "":
                 return [list(line) for line in lines]
             else:
                 return [line.split(delimiter) for line in lines]
@@ -104,7 +110,7 @@ class InputParser:
         grid_data = self.to_grid()
 
         # Now convert to numpy array
-        if isinstance(grid_data[0][0], list): # This means we have a list of grids
-             return [np.array(g, dtype=dtype) for g in grid_data]
-        else: # A single grid
-             return np.array(grid_data, dtype=dtype)
+        if isinstance(grid_data[0][0], list):  # This means we have a list of grids
+            return [np.array(g, dtype=dtype) for g in grid_data]
+        else:  # A single grid
+            return np.array(grid_data, dtype=dtype)
