@@ -1,6 +1,7 @@
-import click
 import logging
 from pathlib import Path
+
+import click
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"

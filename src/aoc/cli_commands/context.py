@@ -1,4 +1,5 @@
 import click
+
 from aoc import _utils
 
 

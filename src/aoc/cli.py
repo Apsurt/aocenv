@@ -1,16 +1,18 @@
-import click
+import collections
 import configparser
-import logging
-import colorlog
-import aoc
-import subprocess
 import datetime
 import json
-from tabulate import tabulate
-import re
+import logging
 import os
+import re
 import statistics
-import collections
+import subprocess
+
+import click
+import colorlog
+from tabulate import tabulate
+
+import aoc
 from aoc import _utils
 
 # --- Command Imports ---

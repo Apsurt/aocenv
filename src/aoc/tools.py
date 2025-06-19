@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import collections
-import heapq
 import functools
+import heapq
 import math
 from typing import Any, Callable, Dict, Generator, List, Tuple, TypeVar, Union
 

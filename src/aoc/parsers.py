@@ -1,6 +1,7 @@
 import re
-import numpy as np
 from typing import Any, Callable, List
+
+import numpy as np
 
 
 class InputParser:

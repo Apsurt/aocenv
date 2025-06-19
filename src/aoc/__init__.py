@@ -1,16 +1,15 @@
 import logging
-import re
 import os
+import re
+import subprocess
 import time
 from contextlib import contextmanager
 from typing import Union
-import subprocess
 
 import click
 
-from . import _utils
+from . import _utils, tools
 from .parsers import InputParser
-from . import tools
 
 __all__ = [
 	"get_input",
