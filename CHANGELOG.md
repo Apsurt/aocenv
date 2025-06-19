@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Refactored the project to use a standard `src` layout, improving compatibility with linters and development tools.
+- The main `cli.py` file has been split into a more manageable `cli_commands` module to improve code organization and maintainability.
+
+### Added
+- Integrated `ruff` for automated code formatting and linting, ensuring a consistent and clean codebase.
+
+### Fixed
+- The `aoc` module is now correctly recognized by linters and IDEs after moving to a standard `src` project layout.
+
 ---
 
 ## [1.4.0] - 2025-06-18
