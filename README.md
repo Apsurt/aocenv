@@ -205,21 +205,3 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 ### Automated Testing Framework
 
 The next major feature planned for this environment is a full **Automated Testing Framework**. An `aoc test` command will automatically extract examples from puzzle descriptions and run your code against them, providing instant feedback on your logic.
-
-### Puzzle Solver's Toolkit
-
-Another powerful addition would be to build a library of common utility functions into the `aoc` module (e.g. in an `aoc.utils` submodule). This would provide pre-built, optimized helpers for tasks that appear frequently in Advent of Code, such as:
-
--   **Grid operations**: Finding neighbors (4-way/8-way), rotating matrices, etc.
--   **Graph algorithms**: Pre-built BFS, DFS, and Dijkstra's algorithm implementations.
--   **Coordinate geometry**: Calculating Manhattan distance, working with 2D/3D points.
-
-This would save you from rewriting the same support code every year, letting you focus purely on the unique aspects of each puzzle.
-
-### Intelligent Input Parsing
-
-To further reduce boilerplate, the `aoc.get_input()` function could be made "smarter". Instead of always returning a raw string, it could attempt to automatically detect the input's format and return a more useful Python data structure. For example:
-
--   If the input is a list of numbers, it could return a `list[int]`.
--   If the input is a rectangular block of characters, it could return a `list[list[str]]` (a grid).
--   Alternatively, new functions could be added, like `aoc.input_as_lines()` or `aoc.input_as_grid()`, to give the user direct access to pre-parsed data structures.
