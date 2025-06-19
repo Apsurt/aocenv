@@ -1,9 +1,10 @@
-from click.testing import CliRunner
 import json
 
-from aoc.cli import cli
-from aoc import _utils
+from click.testing import CliRunner
+
 import aoc
+from aoc import _utils
+from aoc.cli import cli
 
 
 def test_load_command(monkeypatch, tmp_path):

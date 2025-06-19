@@ -1,7 +1,9 @@
 import json
+
 from click.testing import CliRunner
-from aoc.cli import cli
+
 from aoc import _utils
+from aoc.cli import cli
 
 
 def test_context_set_valid_date(monkeypatch, tmp_path):

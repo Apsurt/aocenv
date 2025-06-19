@@ -1,10 +1,11 @@
 import json
+
 import click
 from click.testing import CliRunner
 
-from aoc.cli import cli
-from aoc import _utils
 import aoc
+from aoc import _utils
+from aoc.cli import cli
 
 
 def test_test_command_lifecycle(monkeypatch, tmp_path):

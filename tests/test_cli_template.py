@@ -1,4 +1,5 @@
 from click.testing import CliRunner
+
 from aoc.cli import cli
 from aoc.cli_commands import template as template_cli
 

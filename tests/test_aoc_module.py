@@ -1,7 +1,7 @@
 import pytest
+
 import aoc
 from aoc import _utils
-
 
 # --- Tests for get_input() ---
 
