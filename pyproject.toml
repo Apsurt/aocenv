@@ -21,5 +21,20 @@ dependencies = [
 [project.scripts]
 aoc = "aoc.cli:cli"
 
+[project.optional-dependencies]
+dev = ["ruff"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = ["E", "W", "F"]
+ignore = ["W191"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"

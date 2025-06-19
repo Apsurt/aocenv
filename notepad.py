@@ -20,18 +20,18 @@ puzzle_input = aoc.get_input()  # Keep simple get_input for basic cases
 
 # Your solution logic here...
 def solve(p_input):
-    return
+	return
 
 
 with aoc.timed():
-    answer = solve(puzzle_input)
+	answer = solve(puzzle_input)
 
 # --- Submission ---
 # After solving, uncomment the following line and specify the part
 # number (1 or 2) to submit your answer.
 
 if answer is not None:
-    print(aoc.submit(answer, part=1))
+	print(aoc.submit(answer, part=1))
 
 # --- Binding ---
 # To save your solution, you can use aoc.bind(part=1)
