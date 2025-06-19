@@ -1,14 +1,16 @@
 import configparser
-import requests
-import html2text
-from pathlib import Path
 import datetime
-import logging
-from bs4 import BeautifulSoup
 import json
-import subprocess
+import logging
 import shutil
+import subprocess
+from pathlib import Path
+
 import click
+import html2text
+import requests
+from bs4 import BeautifulSoup
+from bs4.element import Tag
 
 logger = logging.getLogger(__name__)
 
@@ -261,7 +263,12 @@ def post_answer(year: int, day: int, part: int, answer) -> str:
 	response.raise_for_status()
 
 	soup = BeautifulSoup(response.text, "html.parser")
-	response_text = soup.find("article").p.get_text()
+	response_text = ""
+	article_tag = soup.find("article")
+	if isinstance(article_tag, Tag):
+		p_tag = article_tag.find("p")
+		if isinstance(p_tag, Tag):
+			response_text = p_tag.get_text()
 
 	# 3. Save the new result to the cache
 	logger.info("Saving new submission result to cache.")
@@ -300,21 +307,22 @@ def scrape_year_progress(year: int) -> dict[int, int]:
 	progress = {}
 
 	calendar = soup.find("pre", class_="calendar")
-	if not calendar:
+	if not isinstance(calendar, Tag):
 		logger.warning(f"Could not find calendar element for year {year}.")
 		return {}
 
-	# Find all the day links within the calendar
 	day_links = calendar.find_all("a")
 	if not day_links:
 		return {}  # No participation this year
 
 	for link in day_links:
+		if not isinstance(link, Tag):
+			continue
+
 		label = link.get("aria-label", "")
 		day_span = link.find("span", class_="calendar-day")
 
-		# Skip any links that aren't properly formed day entries
-		if not label or not day_span:
+		if not isinstance(day_span, Tag) or not label:
 			continue
 
 		try:
@@ -360,13 +368,13 @@ def scrape_day_page_for_answers(year: int, day: int) -> dict[int, str]:
 	soup = BeautifulSoup(response.text, "html.parser")
 	answers = {}
 
-	# The answer is typically in a <p> tag right after the puzzle text.
-	# The key phrase is "Your puzzle answer was <code>...</code>"
 	for p_tag in soup.find_all("p"):
+		if not isinstance(p_tag, Tag):
+			continue
+
 		if "Your puzzle answer was" in p_tag.get_text():
 			answer_code = p_tag.find("code")
-			if answer_code:
-				# The first one found is Part 1, the second is Part 2
+			if isinstance(answer_code, Tag):
 				part = 1 if 1 not in answers else 2
 				answers[part] = answer_code.get_text()
 				logger.info(f"Found correct answer for Part {part}: {answers[part]}")
@@ -433,7 +441,8 @@ def git_commit_solution(year: int, day: int, part: int):
 
 	except FileNotFoundError:
 		logger.error(
-			"Auto-commit failed: 'git' command not found. Is Git installed and in your PATH?"
+			"Auto-commit failed: 'git' command not found. "
+			"Is Git installed and in your PATH?"
 		)
 	except subprocess.CalledProcessError as e:
 		logger.error(

@@ -61,8 +61,8 @@ class InputParser:
 
 		def _extractor(s: str) -> List[Any]:
 			matches = compiled_pattern.findall(s)
-			# If findall returns a list of tuples (multiple capture groups), it's already structured.
-			# If it's a list of strings (one capture group), return as is.
+			# If findall returns tuples (multiple groups), it's structured.
+			# If it's a list of strings (one group), return as is.
 			return matches
 
 		self._data = self._apply_to_elements(_extractor, self._data)

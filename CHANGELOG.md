@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - The `aoc` module is now correctly recognized by linters and IDEs after moving to a standard `src` project layout.
+- Corrected all Pyright type-checking errors and `ruff` linting warnings, making the codebase more robust and reliable, especially in web scraping and file parsing logic.
 
 ---
 

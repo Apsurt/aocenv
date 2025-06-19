@@ -139,7 +139,8 @@ def dfs(graph: Dict[Node, List[Node]], start_node: Node) -> Generator[Node, None
 		if node not in visited:
 			visited.add(node)
 			yield node
-			# Add neighbors to the stack in reverse to visit them in a more standard order
+			# Add neighbors to the stack in reverse to
+			# visit them in a more standard order
 			for neighbor in reversed(graph.get(node, [])):
 				if neighbor not in visited:
 					stack.append(neighbor)
@@ -152,12 +153,13 @@ def dijkstra(
 	Finds the shortest path in a weighted graph using Dijkstra's algorithm.
 
 	Args:
-	    graph: Adjacency list where graph[node] = [(neighbor, weight), ...].
-	    start: The starting node.
-	    end: The target node.
+		graph: Adjacency list where graph[node] = [(neighbor, weight), ...].
+		start: The starting node.
+		end: The target node.
 
 	Returns:
-	    A tuple of (total_distance, path_list). Distance is float('inf') if no path is found.
+		A tuple of (total_distance, path_list).
+		Distance is float('inf') if no path is found.
 	"""
 	pq = [(0, start, [])]  # (distance, node, path)
 	visited = set()

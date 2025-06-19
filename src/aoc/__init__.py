@@ -3,23 +3,34 @@ import re
 import os
 import time
 from contextlib import contextmanager
+from typing import Union
+
 import click
+
 from . import _utils
 from .parsers import InputParser
 from . import tools
 
+__all__ = [
+	"get_input",
+	"get_input_parser",
+	"get_instructions",
+	"submit",
+	"bind",
+	"clear",
+	"timed",
+	"tools",
+	"year",
+	"day",
+]
+
 # --- Test Mode Initialization ---
-# Check for environment variables to activate test mode.
-# This code runs once when the module is first imported.
 TEST_MODE = os.getenv("AOC_TEST_MODE") == "true"
 _test_input_data = os.getenv("AOC_TEST_INPUT")
 _test_expected_answer = os.getenv("AOC_TEST_OUTPUT")
 
 # --- CONTEXT DETERMINATION ---
-# The context is now determined by a single source of truth.
-# 1. Check for a persisted context in `.context.json`.
-# 2. If none, fall back to the latest puzzle date.
-context = _utils.read_context()
+context: Union[tuple[int, int], None] = _utils.read_context()
 if context:
 	year, day = context
 	logging.getLogger(__name__).info(f"Using persisted context: Year {year}, Day {day}")
@@ -29,21 +40,21 @@ else:
 
 
 # --- PUBLIC FUNCTIONS ---
-def get_input_parser() -> InputParser:
-	"""
-	Returns a fluent InputParser object for advanced input processing.
-	"""
-	return InputParser(get_input())
-
-
 def get_instructions() -> str:
 	"""
 	Gets the puzzle instructions for the current context (year, day).
 
 	Returns:
-	    A formatted string of the puzzle instructions for the terminal.
+		A formatted string of the puzzle instructions for the terminal.
 	"""
 	return _utils.get_aoc_data(year, day, data_type="instructions")
+
+
+def get_input_parser() -> InputParser:
+	"""
+	Returns a fluent InputParser object for advanced input processing.
+	"""
+	return InputParser(get_input())
 
 
 def get_input() -> str:
@@ -61,6 +72,7 @@ def get_input() -> str:
 
 def submit(answer, part: int) -> str:
 	"""
+
 	Submits an answer for the current puzzle context.
 	The puzzle part (1 or 2) must be provided.
 	In Test Mode, this performs a local check against the expected answer.
@@ -69,7 +81,8 @@ def submit(answer, part: int) -> str:
 
 	if TEST_MODE:
 		logger.info(
-			f"TEST MODE: Checking answer '{answer}' against expected '{_test_expected_answer}'."
+			f"TEST MODE: Checking answer '{answer}' against "
+			f"expected '{_test_expected_answer}'."
 		)
 		str_answer = str(answer)
 		str_expected = str(_test_expected_answer)
@@ -97,7 +110,10 @@ def submit(answer, part: int) -> str:
 
 	elif "You don't seem to be solving the right level" in response_text:
 		logger.warning(f"Part {part} has already been completed.")
-		return f"✅ Part {part} has already been completed. The server did not accept the new submission."
+		return (
+			f"✅ Part {part} has already been completed. The server did not "
+			"accept the new submission."
+		)
 
 	else:
 		logger.warning(f"Answer is incorrect. Response: {response_text}")
@@ -115,8 +131,8 @@ def bind(part: int, overwrite: bool = False):
 		logger.error("The 'part' argument for bind() must be 1 or 2.")
 		return
 
-	source_path = _utils.PROJECT_ROOT / "notepad.py"
-	dest_dir = _utils.PROJECT_ROOT / "solutions" / str(year) / f"{day:02d}"
+	source_path = _utils.NOTEPAD_PATH
+	dest_dir = _utils.SOLUTIONS_DIR / str(year) / f"{day:02d}"
 	dest_path = dest_dir / f"part_{part}.py"
 
 	logger.info(f"Binding solution for {year}-{day} Part {part}...")
@@ -127,7 +143,8 @@ def bind(part: int, overwrite: bool = False):
 
 	if dest_path.exists() and not overwrite:
 		logger.warning(
-			f"Solution already exists at {dest_path}. Use bind(overwrite=True, part={part}) to replace it."
+			f"Solution already exists at {dest_path}. "
+			f"Use bind(overwrite=True, part={part}) to replace it."
 		)
 		return
 
@@ -154,15 +171,14 @@ def bind(part: int, overwrite: bool = False):
 def clear():
 	"""Clears all content from the notepad.py file."""
 	logger = logging.getLogger(__name__)
-	notepad_path = _utils.PROJECT_ROOT / "notepad.py"
-	if notepad_path.exists():
-		notepad_path.write_text("")
+	if _utils.NOTEPAD_PATH.exists():
+		_utils.NOTEPAD_PATH.write_text("")
 		logger.info("notepad.py has been cleared.")
 
 
 @contextmanager
 def timed():
-	"""A context manager to time a block of code, activated by the -t flag in 'aoc run'."""
+	"""A context manager to time code, activated by `aoc run -t`."""
 	should_time = os.getenv("AOC_TIME_IT") == "true"
 	start_time = 0
 

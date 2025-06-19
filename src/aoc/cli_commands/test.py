@@ -109,7 +109,8 @@ def test_run():
 		if not part_match:
 			click.secho("Error: Could not determine part from notepad.py.", fg="red")
 			click.secho(
-				"Hint: Make sure you have an `aoc.submit(answer, part=1)` or `aoc.bind(part=1)` call.",
+				"Hint: Make sure you have an `aoc.submit(answer, part=1)` "
+				"or `aoc.bind(part=1)` call.",
 				fg="red",
 			)
 			return

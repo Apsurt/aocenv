@@ -195,7 +195,8 @@ def load(part, force):
 		solution_content = solution_path.read_text()
 		_utils.NOTEPAD_PATH.write_text(solution_content)
 		click.secho(
-			f"✅ Successfully loaded Part {part} for {target_year}-{target_day:02d} into notepad.py.",
+			f"✅ Successfully loaded Part {part} for {target_year}-"
+			f"{target_day:02d} into notepad.py.",
 			fg="green",
 		)
 	except Exception as e:
@@ -389,7 +390,8 @@ def perf(force, timeout):
 				)
 				if result.returncode != 0:
 					logger.error(
-						f"Solution {year}-{day:02d} {part_str} failed. Error:\n{result.stderr}"
+						f"Solution {year}-{day:02d} {part_str} failed. "
+						f"Error:\n{result.stderr}"
 					)
 					continue
 				match = time_regex.search(result.stdout)
@@ -408,7 +410,8 @@ def perf(force, timeout):
 					)
 			except subprocess.TimeoutExpired:
 				logger.warning(
-					f"Solution {year}-{day:02d} {part_str} timed out after {timeout}s. Skipping."
+					f"Solution {year}-{day:02d} {part_str} timed out after "
+					f"{timeout}s. Skipping."
 				)
 			except Exception as e:
 				logger.error(f"An unexpected error occurred while running {path}: {e}")
@@ -512,7 +515,8 @@ def rm(clear_all):
 
 	if clear_all:
 		click.secho(
-			"You are about to permanently delete all cached data, logs, solutions, and configs.",
+			"You are about to permanently delete all cached data, logs, "
+			"solutions, and configs.",
 			fg="red",
 			bold=True,
 		)
