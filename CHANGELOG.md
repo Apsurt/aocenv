@@ -9,15 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.5.0] - 2025-06-19
+
+### Development
+- Performed a full end-to-end test by simulating a new user setup to solve several puzzles, verifying the entire workflow from scratch.
+
 ### Changed
 - Refactored the project to use a standard `src` layout, improving compatibility with linters and development tools.
-- The main `cli.py` file has been split into a more manageable `cli_commands` module to improve code organization and maintainability.
+- The main `cli.py` file has been split into a more manageable `cli_commands` submodule to improve code organization and maintainability.
 
 ### Added
+- A comprehensive `pytest` test suite for developers to ensure the stability and correctness of the `aoc-env` tool itself.
 - Integrated `ruff` for automated code formatting and linting, ensuring a consistent and clean codebase.
+- An "auto-format on bind" option, configurable via `aoc setup`, to automatically format solution code.
 
 ### Fixed
-- The `aoc` module is now correctly recognized by linters and IDEs after moving to a standard `src` project layout.
+- The `aoc` module is now correctly recognized by linters and IDEs after the project structure refactoring.
+- Added validation to the `aoc context set` command to prevent setting invalid or future puzzle dates that are not yet available.
 - Corrected all Pyright type-checking errors and `ruff` linting warnings, making the codebase more robust and reliable, especially in web scraping and file parsing logic.
 
 ---

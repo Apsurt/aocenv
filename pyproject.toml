@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aoc-env"
-version = "1.4.0"
+version = "1.5.0"
 authors = [{ name = "Tymon Becella", email = "tymon.becella@gmail.com" }]
 description = "A personalized environment for Advent of Code."
 requires-python = ">=3.8"

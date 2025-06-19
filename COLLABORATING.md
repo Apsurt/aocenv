@@ -46,4 +46,15 @@ This document provides guidelines for contributing to the project. Please feel f
 3.  **Write a clear title and description** for your Pull Request, explaining the changes you have made.
 4.  **Wait for a review**. Your Pull Request will be reviewed, and you may be asked to make some changes before it is merged.
 
+## Developer Testing
+
+This project uses `pytest` for its internal test suite to ensure the stability and correctness of the `aoc-env` tool itself. These tests are for developers of the tool, not for solving puzzles.
+
+### Setting Up for Testing
+
+Before you can run the tests, you must install the development dependencies:
+```bash
+uv pip install -e ".[dev]"
+```
+
 Thank you again for your contribution!
