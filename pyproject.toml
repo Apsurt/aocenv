@@ -22,7 +22,7 @@ dependencies = [
 aoc = "aoc.cli:cli"
 
 [project.optional-dependencies]
-dev = ["ruff"]
+dev = ["ruff", "pytest", "requests-mock"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -38,3 +38,8 @@ ignore = ["W191"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "tab"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
