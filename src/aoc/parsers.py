@@ -18,17 +18,20 @@ class InputParser:
 		return iter([self._data])
 
 	def _apply_to_elements(self, func: Callable, current_data: Any) -> Any:
-		"""Helper to apply a function to elements, handling nested lists."""
+		"""Helper to apply a function to elements, handling nested lists and tuples."""
 		if isinstance(current_data, list):
 			return [self._apply_to_elements(func, item) for item in current_data]
+		if isinstance(current_data, tuple):
+			return tuple(self._apply_to_elements(func, item) for item in current_data)
 		return func(current_data)
 
 	# --- Transformer Methods (Chainable) ---
 
 	def lines(self):
-		"""Splits the data into a list of strings by newlines."""
+		"""Splits the data into a list of non-empty strings by newlines."""
 		if isinstance(self._data, str):
-			self._data = self._data.strip().splitlines()
+			# Filter out empty lines that can result from blank lines in input
+			self._data = [line for line in self._data.strip().splitlines() if line]
 		return self
 
 	def blocks(self):
@@ -55,15 +58,11 @@ class InputParser:
 	def extract(self, pattern: str):
 		"""
 		For each string, extracts all capture groups from a regex pattern.
-		If the pattern has only one capture group, it returns a single value.
-		If it has multiple, it returns a tuple of values.
 		"""
 		compiled_pattern = re.compile(pattern)
 
 		def _extractor(s: str) -> List[Any]:
 			matches = compiled_pattern.findall(s)
-			# If findall returns tuples (multiple groups), it's structured.
-			# If it's a list of strings (one group), return as is.
 			return matches
 
 		self._data = self._apply_to_elements(_extractor, self._data)
@@ -106,12 +105,10 @@ class InputParser:
 	def to_numpy(self, dtype: Any = None):
 		"""
 		Parses the data into a grid and returns it as a NumPy array.
+		Assumes the data is already in a grid-like format (e.g., list of lists).
 		"""
-		# First, convert to a standard grid format
-		grid_data = self.to_grid()
+		# If data is still a raw string, default to splitting by lines.
+		if isinstance(self._data, str):
+			self.lines()
 
-		# Now convert to numpy array
-		if isinstance(grid_data[0][0], list):  # This means we have a list of grids
-			return [np.array(g, dtype=dtype) for g in grid_data]
-		else:  # A single grid
-			return np.array(grid_data, dtype=dtype)
+		return np.array(self._data, dtype=dtype)
