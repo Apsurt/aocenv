@@ -30,7 +30,7 @@ This is the standard way to use the project for your own Advent of Code solution
 
 2.  **Clone Your New Repository**: Clone the new repository you just created to your local machine.
     ```bash
-    git clone [https://github.com/YOUR-USERNAME/my-aoc-solutions.git](https://github.com/YOUR-USERNAME/my-aoc-solutions.git)
+    git clone https://github.com/YOUR-USERNAME/my-aoc-solutions.git
     cd my-aoc-solutions
     ```
 
