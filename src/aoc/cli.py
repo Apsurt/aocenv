@@ -1,6 +1,5 @@
 import click
 import configparser
-from pathlib import Path
 import logging
 import colorlog
 import aoc
@@ -20,23 +19,13 @@ from .cli_commands.template import template_group
 from .cli_commands.test import test_group
 
 
-# --- PATHS & CONFIG ---
-PROJECT_ROOT = Path(__file__).parent.parent.parent
-CONFIG_FILE_PATH = PROJECT_ROOT / "config.ini"
-LOGS_DIR = PROJECT_ROOT / ".logs"
-CACHE_DIR = PROJECT_ROOT / ".cache"
-SOLUTIONS_DIR = PROJECT_ROOT / "solutions"
-NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"
-PERF_CACHE_PATH = CACHE_DIR / "performance.json"
-
-
 def setup_logging(verbose: bool):
 	"""Configures file and console logging."""
-	LOGS_DIR.mkdir(exist_ok=True)
+	_utils.LOGS_DIR.mkdir(exist_ok=True)
 	root_logger = logging.getLogger()
 	root_logger.setLevel(logging.INFO)
 
-	file_handler = logging.FileHandler(LOGS_DIR / "aoc_env.log")
+	file_handler = logging.FileHandler(_utils.LOGS_DIR / "aoc_env.log")
 	file_formatter = logging.Formatter(
 		"%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 	)
@@ -72,7 +61,7 @@ def cli(verbose):
 	A command-line tool for managing your Advent of Code environment.
 	This tool helps you fetch puzzle data, submit answers, and manage solutions.
 	"""
-	required_dirs = [CACHE_DIR, LOGS_DIR, SOLUTIONS_DIR]
+	required_dirs = [_utils.CACHE_DIR, _utils.LOGS_DIR, _utils.SOLUTIONS_DIR]
 	for directory in required_dirs:
 		directory.mkdir(exist_ok=True)
 		gitkeep_path = directory / ".gitkeep"
@@ -88,7 +77,14 @@ def cli(verbose):
 def setup():
 	"""Runs an interactive wizard to configure your environment."""
 	click.echo("--- Advent of Code Environment Setup ---")
-	# ... (rest of the setup prompt logic)
+	click.echo("\nThis wizard will help you configure your session cookie.")
+	click.echo("You can get your cookie from the Advent of Code website:")
+	click.echo("  1. Log in to https://adventofcode.com")
+	click.echo("  2. Open your browser's developer tools (usually by pressing F12).")
+	click.echo("  3. Go to the 'Application' or 'Storage' tab.")
+	click.echo("  4. Find the 'Cookies' section for adventofcode.com.")
+	click.echo("  5. Copy the entire value of the 'session' cookie.")
+
 	session_cookie = click.prompt("\nPlease paste your session cookie", hide_input=True)
 	auto_bind = click.confirm(
 		"\nAutomatically save your code (`bind`) on a correct submission?", default=True
@@ -108,10 +104,11 @@ def setup():
 		"auto_commit_on_bind": "true" if auto_commit else "false",
 	}
 	try:
-		with open(CONFIG_FILE_PATH, "w") as config_file:
+		with open(_utils.CONFIG_FILE_PATH, "w") as config_file:
 			config.write(config_file)
 		click.secho(
-			f"\n✅ Configuration saved successfully to {CONFIG_FILE_PATH}", fg="green"
+			f"\n✅ Configuration saved successfully to {_utils.CONFIG_FILE_PATH}",
+			fg="green",
 		)
 	except Exception as e:
 		click.secho(f"\n❌ Error saving configuration: {e}", fg="red")
@@ -152,15 +149,15 @@ def input():
 def run(time_it):
 	"""Executes the code in the main notepad.py file."""
 	logger = logging.getLogger(__name__)
-	if not NOTEPAD_PATH.exists():
-		logger.error(f"Notepad file not found at: {NOTEPAD_PATH}")
+	if not _utils.NOTEPAD_PATH.exists():
+		logger.error(f"Notepad file not found at: {_utils.NOTEPAD_PATH}")
 		return
 	env = os.environ.copy()
 	if time_it:
 		env["AOC_TIME_IT"] = "true"
-	logger.info(f"Executing {NOTEPAD_PATH} with context {aoc.year}-{aoc.day}...")
+	logger.info(f"Executing {_utils.NOTEPAD_PATH} with context {aoc.year}-{aoc.day}...")
 	try:
-		subprocess.run(["python", str(NOTEPAD_PATH)], check=True, env=env)
+		subprocess.run(["python", str(_utils.NOTEPAD_PATH)], check=True, env=env)
 	except subprocess.CalledProcessError as e:
 		logger.error(f"notepad.py exited with an error (return code {e.returncode}).")
 	except Exception as e:
@@ -177,7 +174,7 @@ def load(part, force):
 	logger = logging.getLogger(__name__)
 	target_year, target_day, target_part = aoc.year, aoc.day, int(part)
 	solution_path = (
-		SOLUTIONS_DIR
+		_utils.SOLUTIONS_DIR
 		/ str(target_year)
 		/ f"{target_day:02d}"
 		/ f"part_{target_part}.py"
@@ -186,13 +183,17 @@ def load(part, force):
 	if not solution_path.exists():
 		click.secho(f"Error: Solution not found at {solution_path}", fg="red")
 		return
-	if NOTEPAD_PATH.exists() and NOTEPAD_PATH.read_text().strip() and not force:
+	if (
+		_utils.NOTEPAD_PATH.exists()
+		and _utils.NOTEPAD_PATH.read_text().strip()
+		and not force
+	):
 		if not click.confirm("Warning: notepad.py is not empty! Overwrite it?"):
 			click.echo("Load operation cancelled.")
 			return
 	try:
 		solution_content = solution_path.read_text()
-		NOTEPAD_PATH.write_text(solution_content)
+		_utils.NOTEPAD_PATH.write_text(solution_content)
 		click.secho(
 			f"✅ Successfully loaded Part {part} for {target_year}-{target_day:02d} into notepad.py.",
 			fg="green",
@@ -220,7 +221,7 @@ def sync():
 		except Exception as e:
 			logger.error(f"Failed to sync progress for year {year}: {e}")
 	data_to_save = {"progress": full_progress}
-	with open(aoc.PROGRESS_JSON_PATH, "w") as f:
+	with open(_utils.PROGRESS_JSON_PATH, "w") as f:
 		json.dump(data_to_save, f, indent=2, sort_keys=True)
 	click.secho("\n✅ Sync complete!", fg="green")
 
@@ -228,11 +229,10 @@ def sync():
 @cli.command()
 def stats():
 	"""Displays your puzzle completion stats in a table."""
-	# ... (stats command logic remains the same)
-	if not aoc.PROGRESS_JSON_PATH.exists():
+	if not _utils.PROGRESS_JSON_PATH.exists():
 		click.secho("No progress data found. Please run 'aoc sync' first.", fg="red")
 		return
-	with open(aoc.PROGRESS_JSON_PATH, "r") as f:
+	with open(_utils.PROGRESS_JSON_PATH, "r") as f:
 		progress_data = json.load(f).get("progress", {})
 	if not progress_data:
 		click.secho(
@@ -282,11 +282,10 @@ def clear():
 @cli.command(name="list")
 def solutions_list():
 	"""Lists all archived solutions."""
-	# ... (list command logic remains the same)
-	if not SOLUTIONS_DIR.exists():
+	if not _utils.SOLUTIONS_DIR.exists():
 		click.echo("No solutions directory found.")
 		return
-	solution_files = sorted(SOLUTIONS_DIR.glob("**/part_*.py"), reverse=True)
+	solution_files = sorted(_utils.SOLUTIONS_DIR.glob("**/part_*.py"), reverse=True)
 	if not solution_files:
 		click.echo("No solutions have been saved yet.")
 		return
@@ -304,8 +303,32 @@ def solutions_list():
 
 
 def _display_perf_results(results):
-	# ... (this helper can remain in cli.py)
-	pass
+	"""Helper to display performance tables."""
+	click.secho("\n\n--- Performance Results ---", bold=True)
+	headers = [
+		click.style("Year", bold=True),
+		click.style("Day", bold=True),
+		click.style("Part", bold=True),
+		click.style("Time (ms)", bold=True),
+	]
+	table_data = [[r["year"], r["day"], r["part"], f"{r['time']:.2f}"] for r in results]
+	click.echo(tabulate(table_data, headers=headers, tablefmt="psql"))
+
+	if results:
+		times = [r["time"] for r in results]
+		stats_data = [
+			("Solutions Benchmarked", len(times)),
+			("Average Time (ms)", f"{statistics.mean(times):.2f}"),
+			("Median Time (ms)", f"{statistics.median(times):.2f}"),
+			("Min Time (ms)", f"{min(times):.2f}"),
+			("Max Time (ms)", f"{max(times):.2f}"),
+			(
+				"Standard Deviation",
+				f"{statistics.stdev(times):.2f}" if len(times) > 1 else "N/A",
+			),
+		]
+		click.secho("\n--- Summary Statistics ---", bold=True)
+		click.echo(tabulate(stats_data, headers=["Metric", "Value"], tablefmt="psql"))
 
 
 @cli.command()
@@ -319,31 +342,43 @@ def _display_perf_results(results):
 	help="Timeout in seconds for each solution run.",
 )
 def perf(force, timeout):
-	"""Runs all saved solutions and measures their performance."""
-	# ... (perf command logic remains the same)
+	"""
+	Runs all saved solutions and measures their performance.
+	Results are cached. Use --force to re-run.
+	"""
 	logger = logging.getLogger(__name__)
-	if not force and PERF_CACHE_PATH.exists():
+
+	if not force and _utils.PERF_CACHE_PATH.exists():
 		click.secho("--- Loading Performance Results from Cache ---", bold=True)
-		with open(PERF_CACHE_PATH, "r") as f:
+		with open(_utils.PERF_CACHE_PATH, "r") as f:
 			results = json.load(f)
 		_display_perf_results(results)
 		click.echo("\nUse --force to re-run benchmarks.")
 		return
+
 	click.secho("--- Running Performance Benchmark ---", bold=True)
-	solution_files = sorted(SOLUTIONS_DIR.glob("**/part_*.py"))
+	solution_files = sorted(_utils.SOLUTIONS_DIR.glob("**/part_*.py"))
+	if not solution_files:
+		click.secho("No solutions found to benchmark.", fg="yellow")
+		return
+
 	results = []
 	time_regex = re.compile(r"Execution time: ([\d.]+) ms")
 	env = os.environ.copy()
 	env["AOC_TIME_IT"] = "true"
+
 	with click.progressbar(solution_files, label="Benchmarking solutions") as bar:
 		for path in bar:
 			try:
-				year, day, part_str = (
-					int(path.parts[-3]),
-					int(path.parts[-2]),
-					path.stem,
-				)
-				_utils.write_context(year, day)
+				year = int(path.parts[-3])
+				day = int(path.parts[-2])
+				part_str = path.stem
+			except (IndexError, ValueError):
+				logger.warning(f"Could not parse year/day from path: {path}. Skipping.")
+				continue
+
+			_utils.write_context(year, day)
+			try:
 				result = subprocess.run(
 					["python", str(path)],
 					capture_output=True,
@@ -367,39 +402,73 @@ def perf(force, timeout):
 							"time": float(match.group(1)),
 						}
 					)
+				else:
+					logger.warning(
+						f"Could not parse execution time for {path}. Skipping."
+					)
 			except subprocess.TimeoutExpired:
 				logger.warning(
 					f"Solution {year}-{day:02d} {part_str} timed out after {timeout}s. Skipping."
 				)
 			except Exception as e:
 				logger.error(f"An unexpected error occurred while running {path}: {e}")
-	with open(PERF_CACHE_PATH, "w") as f:
+
+	# Save results to cache
+	with open(_utils.PERF_CACHE_PATH, "w") as f:
 		json.dump(results, f, indent=2)
+
+	if not results:
+		click.secho("\nNo solutions could be benchmarked.", fg="red")
+		return
+
 	_display_perf_results(results)
 
 
 def _draw_ascii_barchart(data, title):
-	# ... (this helper can remain in cli.py)
-	pass
+	"""Helper to draw a simple ASCII bar chart."""
+	click.secho(f"\n--- {title} ---", bold=True)
+
+	labels = [item[0] for item in data]
+	values = [item[1] for item in data]
+
+	if not values:
+		click.echo("No data to plot.")
+		return
+
+	max_val = max(values)
+	max_label_len = max(len(str(label)) for label in labels)
+	bar_width = 40
+
+	for label, val in data:
+		bar_len = int((val / max_val) * bar_width) if max_val > 0 else 0
+		bar = "█" * bar_len
+		click.echo(f"{str(label).ljust(max_label_len)} | {val:8.2f} ms | {bar}")
 
 
 @cli.command()
 def plot():
 	"""Displays a plot of the cached performance data."""
-	# ... (plot command logic remains the same)
-	if not PERF_CACHE_PATH.exists():
-		click.secho(
-			"Performance cache not found. Please run 'aoc perf' first.", fg="red"
-		)
+	if not _utils.PERF_CACHE_PATH.exists():
+		click.secho("Performance cache not found.", fg="red")
+		click.echo("Please run 'aoc perf' first to generate performance data.")
 		return
-	with open(PERF_CACHE_PATH, "r") as f:
+
+	with open(_utils.PERF_CACHE_PATH, "r") as f:
 		results = json.load(f)
+
+	if not results:
+		click.secho("No performance data found in cache.", fg="yellow")
+		return
+
+	# Aggregate data: Average time per year
 	yearly_times = collections.defaultdict(list)
 	for res in results:
 		yearly_times[str(res["year"])].append(res["time"])
+
 	avg_times_per_year = []
 	for year, times in sorted(yearly_times.items()):
 		avg_times_per_year.append((year, statistics.mean(times)))
+
 	_draw_ascii_barchart(
 		avg_times_per_year, "Performance Profile: Average Time per Year"
 	)
@@ -410,9 +479,64 @@ def plot():
 	"--all", "clear_all", is_flag=True, help="Clear all data without prompting."
 )
 def rm(clear_all):
-	"""Clears cached data, logs, and other generated files."""
-	# ... (rm command logic remains the same)
-	pass
+	"""
+	Clears cached data, logs, and other generated files.
+	Launches an interactive prompt to select what to clear.
+	Use --all to clear everything non-interactively.
+	"""
+	selected_ids = []
+
+	if not clear_all:
+		click.echo("Select items to clear. (e.g., '1,3,5' or 'all')")
+		for i, (display_name, _, _) in enumerate(_utils.CLEARABLE_ITEMS, 1):
+			click.echo(f"  {click.style(str(i), fg='yellow')}: {display_name}")
+
+		choice_str = click.prompt(
+			"\nEnter the numbers of items to clear, separated by commas"
+		)
+
+		if choice_str.lower().strip() == "all":
+			clear_all = True
+		else:
+			id_map = {i: item[1] for i, item in enumerate(_utils.CLEARABLE_ITEMS, 1)}
+			try:
+				indices = [int(i.strip()) for i in choice_str.split(",") if i.strip()]
+				for i in indices:
+					if i in id_map and id_map[i] not in selected_ids:
+						selected_ids.append(id_map[i])
+			except ValueError:
+				click.secho(
+					"Invalid input. Please enter numbers separated by commas.", fg="red"
+				)
+				return
+
+	if clear_all:
+		click.secho(
+			"You are about to permanently delete all cached data, logs, solutions, and configs.",
+			fg="red",
+			bold=True,
+		)
+		if not click.confirm("Are you absolutely sure you want to proceed?"):
+			click.echo("Clear operation cancelled.")
+			return
+		all_item_ids = [item[1] for item in _utils.CLEARABLE_ITEMS]
+		_utils.perform_clear(all_item_ids)
+		return
+
+	if not selected_ids:
+		click.echo("No valid items selected. Operation cancelled.")
+		return
+
+	click.echo("\nYou have selected the following items for deletion:")
+	for display_name, internal_id, _ in _utils.CLEARABLE_ITEMS:
+		if internal_id in selected_ids:
+			click.secho(f"  - {display_name}", fg="yellow")
+
+	if not click.confirm("\nAre you sure you want to permanently delete these items?"):
+		click.echo("Clear operation cancelled.")
+		return
+
+	_utils.perform_clear(selected_ids)
 
 
 # Register command groups

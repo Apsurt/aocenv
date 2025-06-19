@@ -7,17 +7,23 @@ import logging
 from bs4 import BeautifulSoup
 import json
 import subprocess
+import shutil
+import click
 
 logger = logging.getLogger(__name__)
 
-# --- CONFIGURATION & PATHS ---
+# --- CONFIGURATION & PATHS (Centralized) ---
 
-# The root of the project is two levels up from this file (src/aoc/_utils.py)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-CACHE_DIR = PROJECT_ROOT / ".cache"
 CONFIG_FILE_PATH = PROJECT_ROOT / "config.ini"
-CONTEXT_FILE_PATH = PROJECT_ROOT / ".context.json"
+LOGS_DIR = PROJECT_ROOT / ".logs"
+CACHE_DIR = PROJECT_ROOT / ".cache"
+SOLUTIONS_DIR = PROJECT_ROOT / "solutions"
+NOTEPAD_PATH = PROJECT_ROOT / "notepad.py"
+TEMPLATES_DIR = PROJECT_ROOT / ".templates"
 PROGRESS_JSON_PATH = PROJECT_ROOT / "progress.json"
+CONTEXT_FILE_PATH = PROJECT_ROOT / ".context.json"
+PERF_CACHE_PATH = CACHE_DIR / "performance.json"
 AOC_BASE_URL = "https://adventofcode.com"
 
 
@@ -276,7 +282,7 @@ def scrape_year_progress(year: int) -> dict[int, int]:
 	Scrapes the main page of a given year to get puzzle completion status.
 
 	Returns:
-	    A dictionary mapping each day (int) to its star count (0, 1, or 2).
+		A dictionary mapping each day (int) to its star count (0, 1, or 2).
 	"""
 	logger.info(f"Scraping progress for year {year}...")
 	session_cookie = get_session_cookie()
@@ -333,7 +339,7 @@ def scrape_day_page_for_answers(year: int, day: int) -> dict[int, str]:
 	Scrapes a puzzle day's page to find any revealed correct answers.
 
 	Returns:
-	    A dictionary mapping the part number (1 or 2) to the correct answer (str).
+		A dictionary mapping the part number (1 or 2) to the correct answer (str).
 	"""
 	logger.info(f"Checking for correct answers on page for {year}-{day}...")
 	session_cookie = get_session_cookie()
@@ -394,11 +400,9 @@ def git_commit_solution(year: int, day: int, part: int):
 	Stages and commits a solution file with a standardized message.
 	"""
 	logger = logging.getLogger(__name__)
-	solution_path = (
-		PROJECT_ROOT / "solutions" / str(year) / f"{day:02d}" / f"part_{part}.py"
-	)
+	solution_path = SOLUTIONS_DIR / str(year) / f"{day:02d}" / f"part_{part}.py"
 	# Also good to commit the progress file if it has changed
-	progress_path = PROJECT_ROOT / "progress.json"
+	progress_path = PROGRESS_JSON_PATH
 
 	commit_message = f"feat({year}-{day:02d}): Solve Part {part}"
 
@@ -437,3 +441,57 @@ def git_commit_solution(year: int, day: int, part: int):
 		)
 	except Exception as e:
 		logger.error(f"An unexpected error occurred during auto-commit: {e}")
+
+
+# --- RM Command Helpers ---
+
+CLEARABLE_ITEMS = [
+	("Cached Data (.cache/)", "cache", CACHE_DIR),
+	("Log Files (.logs/)", "logs", LOGS_DIR),
+	("Archived Solutions (solutions/)", "solutions", SOLUTIONS_DIR),
+	("Notepad Content (notepad.py)", "notepad", NOTEPAD_PATH),
+	("Progress Data (progress.json)", "progress", PROGRESS_JSON_PATH),
+	("Session Config (config.ini)", "config", CONFIG_FILE_PATH),
+	("Puzzle Context (.context.json)", "context", CONTEXT_FILE_PATH),
+	("Performance Cache (performance.json)", "perf_cache", PERF_CACHE_PATH),
+]
+
+
+def perform_clear(items_to_clear: list[str]):
+	"""Helper function to delete files and directories."""
+	logger = logging.getLogger(__name__)
+	cleared_something = False
+
+	for display_name, internal_id, path in CLEARABLE_ITEMS:
+		if internal_id in items_to_clear:
+			try:
+				if path.is_dir():
+					shutil.rmtree(path)
+					click.secho(f"🗑️  Removed directory: {path}", fg="yellow")
+					# Recreate directory with .gitkeep
+					path.mkdir(exist_ok=True)
+					gitkeep_path = path / ".gitkeep"
+					if not gitkeep_path.exists():
+						gitkeep_path.touch()
+
+				elif path.is_file():
+					if internal_id == "notepad":
+						path.write_text("")  # Clear instead of deleting
+						click.secho(f"🗑️  Cleared file: {path}", fg="yellow")
+					else:
+						path.unlink()
+						click.secho(f"🗑️  Removed file: {path}", fg="yellow")
+
+				cleared_something = True
+
+			except FileNotFoundError:
+				click.secho(
+					f"ℹ️  Could not clear '{display_name}'. Already removed.", fg="cyan"
+				)
+			except Exception as e:
+				logger.error(f"Failed to clear {path}: {e}")
+
+	if cleared_something:
+		click.secho("\n✅ Clear operation complete.", fg="green")
+	else:
+		click.secho("\nNo items were selected to be cleared.", fg="yellow")
