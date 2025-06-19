@@ -13,7 +13,29 @@ def context_group():
 @click.option("-y", "--year", type=int, required=True, help="The puzzle year to set.")
 @click.option("-d", "--day", type=int, required=True, help="The puzzle day to set.")
 def context_set(year, day):
-	"""Sets and saves the puzzle context."""
+	"""Sets and saves the puzzle context with validation."""
+	latest_year, latest_day = _utils.get_latest_puzzle_date()
+
+	# Validate the requested date
+	if not 2015 <= year <= latest_year:
+		click.secho(
+			f"Error: Year must be between 2015 and {latest_year}.",
+			fg="red",
+		)
+		raise click.Abort()
+
+	if not 1 <= day <= 25:
+		click.secho("Error: Day must be between 1 and 25.", fg="red")
+		raise click.Abort()
+
+	if year == latest_year and day > latest_day:
+		click.secho(
+			f"Error: Puzzle for {year}-{day:02d} is not yet available.",
+			fg="red",
+		)
+		click.secho(f"The latest available puzzle is {latest_year}-{latest_day:02d}.")
+		raise click.Abort()
+
 	_utils.write_context(year, day)
 	click.secho(f"✅ Context set to Year {year}, Day {day}.", fg="green")
 
