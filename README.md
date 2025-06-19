@@ -20,38 +20,57 @@ It provides a robust command-line interface (CLI) and a Python module to handle 
 
 ## 🚀 Getting Started
 
-### Prerequisites
+There are two ways to use this project: as a user solving puzzles or as a contributor improving the tool.
 
-* Git
-* Python 3.8+
-* [uv](https://github.com/astral-sh/uv) (or `pip` with `venv`)
+### As a User (Recommended)
 
-### 1. Installation
+This is the standard way to use the project for your own Advent of Code solutions. You will create your own personal repository from this template.
 
-First, fork the repository. Then clone it and set up the Python environment.
+1.  **Create from Template**: On the GitHub page for this repository, click the green **"Use this template"** button and select "Create a new repository". Give your new personal repository a name (e.g., `my-aoc-solutions`).
 
-```bash
-# Clone your forked repository
-git clone [https://github.com/Apsurt/aoc-env.git](https://github.com/Apsurt/aoc-env.git)
-cd aoc-env
+2.  **Clone Your New Repository**: Clone the new repository you just created to your local machine.
+    ```bash
+    git clone [https://github.com/YOUR-USERNAME/my-aoc-solutions.git](https://github.com/YOUR-USERNAME/my-aoc-solutions.git)
+    cd my-aoc-solutions
+    ```
 
-# Create and activate a virtual environment using uv
-uv venv
-source .venv/bin/activate
+3.  **Set Up Environment**: Create a virtual environment and install the project and its dependencies. `uv` is recommended for its speed, but `pip` and `venv` work perfectly well.
 
-# Install the project and its dependencies in editable mode
-uv pip install -e .
-```
+    **Recommended (`uv`):**
+    ```bash
+    # Create and activate a virtual environment using uv
+    uv venv
+    source .venv/bin/activate
 
-### 2. Configuration
+    # Install the project
+    uv pip install -e .
+    ```
 
-This is a mandatory first step. Run the setup wizard to configure your session cookie, which is required to communicate with the AoC website.
+    **Alternative (`pip` and `venv`):**
+    ```bash
+    # Create a virtual environment using Python's built-in venv
+    python3 -m venv .venv
+    source .venv/bin/activate
 
-```bash
-aoc setup
-```
+    # Install the project using pip
+    pip install -e .
+    ```
 
-The wizard will guide you through finding your cookie in your browser and will ask you about your preferences for auto-binding and auto-clearing.
+4.  **Configure Your Session**: Run the one-time setup wizard to configure your Advent of Code session cookie and user preferences.
+    ```bash
+    aoc setup
+    ```
+
+5.  **Sync Your Progress**: Run the `sync` command to fetch your puzzle completion history (stars) from the Advent of Code website.
+    ```bash
+    aoc sync
+    ```
+
+You are now ready to start solving puzzles! All your solutions and progress will be saved to your own personal repository.
+
+### As a Contributor
+
+If you want to contribute to improving the `aoc-env` tool itself, please see the guidelines in the `COLLABORATING.md` file.
 
 ## 🔧 Workflow
 
