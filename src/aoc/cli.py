@@ -95,6 +95,9 @@ def setup():
 	auto_commit = click.confirm(
 		"\nAutomatically commit solutions to Git after a successful bind?", default=True
 	)
+	auto_format = click.confirm(
+		"\nAutomatically format notepad.py with ruff on bind?", default=True
+	)
 
 	config = configparser.ConfigParser()
 	config["user"] = {
@@ -102,6 +105,7 @@ def setup():
 		"auto_bind": "true" if auto_bind else "false",
 		"auto_clear_on_bind": "true" if auto_clear else "false",
 		"auto_commit_on_bind": "true" if auto_commit else "false",
+		"auto_format_on_bind": "true" if auto_format else "false",
 	}
 	try:
 		with open(_utils.CONFIG_FILE_PATH, "w") as config_file:

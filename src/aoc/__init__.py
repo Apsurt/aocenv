@@ -4,6 +4,7 @@ import os
 import time
 from contextlib import contextmanager
 from typing import Union
+import subprocess
 
 import click
 
@@ -140,6 +141,14 @@ def bind(part: int, overwrite: bool = False):
 	if not source_path.exists():
 		logger.error("notepad.py not found!")
 		return
+
+	if _utils.get_bool_config_setting("auto_format_on_bind", default=True):
+		logger.info(f"Auto-formatting {source_path} with ruff...")
+		try:
+			subprocess.run(["ruff", "format", str(source_path)], check=True)
+		except (subprocess.CalledProcessError, FileNotFoundError) as e:
+			logger.error(f"Failed to format notepad.py with ruff: {e}")
+			logger.warning("Proceeding to bind the unformatted file.")
 
 	if dest_path.exists() and not overwrite:
 		logger.warning(
