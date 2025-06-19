@@ -12,12 +12,12 @@ venv/
 *.egg-info/
 dist/
 build/
-env_src/uv.lock
+src/uv.lock
 
 # Application specific
 .cache/
 .logs/
-env_src/config.ini
+config.ini
 .context.json
 
 # IDEs

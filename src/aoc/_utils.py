@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION & PATHS ---
 
-# The root of the project is two levels up from this file (env_src/aoc/_utils.py)
+# The root of the project is two levels up from this file (src/aoc/_utils.py)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CACHE_DIR = PROJECT_ROOT / ".cache"
-CONFIG_FILE_PATH = Path(__file__).parent.parent / "config.ini"
+CONFIG_FILE_PATH = PROJECT_ROOT / "config.ini"
 CONTEXT_FILE_PATH = PROJECT_ROOT / ".context.json"
 PROGRESS_JSON_PATH = PROJECT_ROOT / "progress.json"
 AOC_BASE_URL = "https://adventofcode.com"

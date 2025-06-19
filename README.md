@@ -40,7 +40,7 @@ uv venv
 source .venv/bin/activate
 
 # Install the project and its dependencies in editable mode
-uv pip install -e ./env_src/
+uv pip install -e .
 ```
 
 ### 2. Configuration
@@ -192,7 +192,7 @@ The `test` command group allows you to manage local test cases for each puzzle. 
 ├── .context.json      # Stores your current puzzle context (year, day)
 ├── .logs/             # Stores detailed log files
 ├── .venv/             # Your Python virtual environment
-├── env_src/           # All the application source code
+├── src/           # All the application source code
 │   └── aoc/           # The main 'aoc' Python package
 ├── solutions/         # Your archived solutions are saved here
 ├── .gitignore         # Standard git ignore file
