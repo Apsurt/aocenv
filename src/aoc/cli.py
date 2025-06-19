@@ -214,8 +214,9 @@ def sync():
 	"""Scrapes AoC website for your star progress."""
 	logger = logging.getLogger(__name__)
 	click.secho("Starting sync with Advent of Code website...", fg="yellow")
-	now = datetime.datetime.now(datetime.timezone.utc)
-	latest_year_to_check = now.year if now.month == 12 else now.year - 1
+
+	latest_year_to_check, _ = _utils.get_latest_puzzle_date()
+
 	full_progress = {}
 	click.echo("Fetching star progress for each year...")
 	all_years = list(range(2015, latest_year_to_check + 1))
