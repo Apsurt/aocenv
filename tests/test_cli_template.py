@@ -2,6 +2,7 @@ from click.testing import CliRunner
 from aoc.cli import cli
 from aoc.cli_commands import template as template_cli
 
+
 def test_template_lifecycle(monkeypatch, tmp_path):
 	"""
 	Tests the full lifecycle of a template: save, list, load, and delete.
