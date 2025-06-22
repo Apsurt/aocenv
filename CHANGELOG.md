@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The `aoc.submit()` function now automatically updates the local `progress.json` file upon a correct submission, keeping local stats in sync without needing a full `aoc sync`.
+
 ### Fixed
 - Fixed a critical bug where temporary rate-limit/cooldown messages from the server were incorrectly cached, preventing successful submission of a correct answer after a cooldown period.
 

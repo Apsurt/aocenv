@@ -72,7 +72,6 @@ def get_input() -> str:
 
 def submit(answer, part: int) -> str:
 	"""
-
 	Submits an answer for the current puzzle context.
 	The puzzle part (1 or 2) must be provided.
 	In Test Mode, this performs a local check against the expected answer.
@@ -101,8 +100,23 @@ def submit(answer, part: int) -> str:
 
 	response_text = _utils.post_answer(year, day, part, answer)
 
+	progress_data = _utils.read_progress_file()
+	year_str = str(year)
+	day_str = str(day)
+
+	if year_str not in progress_data["progress"]:
+		progress_data["progress"][year_str] = {}
+
+	current_stars = progress_data["progress"][year_str].get(day_str, 0)
+
+
 	if "That's the right answer!" in response_text:
 		logger.info("Answer is correct!")
+
+		new_stars = max(current_stars, part)
+		progress_data["progress"][year_str][day_str] = new_stars
+		_utils.write_progress_file(progress_data)
+
 		if _utils.get_bool_config_setting("auto_bind", default=True):
 			logger.info(f"Auto-binding solution for Part {part}...")
 			bind(part)
@@ -110,6 +124,12 @@ def submit(answer, part: int) -> str:
 
 	elif "You don't seem to be solving the right level" in response_text:
 		logger.warning(f"Part {part} has already been completed.")
+
+		new_stars = max(current_stars, part)
+		if progress_data["progress"][year_str].get(day_str) != new_stars:
+			progress_data["progress"][year_str][day_str] = new_stars
+			_utils.write_progress_file(progress_data)
+
 		return (
 			f"✅ Part {part} has already been completed. The server did not "
 			"accept the new submission."

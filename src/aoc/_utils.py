@@ -511,3 +511,20 @@ def perform_clear(items_to_clear: list[str]):
 		click.secho("\n✅ Clear operation complete.", fg="green")
 	else:
 		click.secho("\nNo items were selected to be cleared.", fg="yellow")
+
+def read_progress_file() -> dict:
+	"""Reads and parses the progress.json file."""
+	if not PROGRESS_JSON_PATH.exists():
+		return {"progress": {}}
+	with open(PROGRESS_JSON_PATH, "r") as f:
+		try:
+			return json.load(f)
+		except json.JSONDecodeError:
+			logger.warning("Could not parse progress.json, starting fresh.")
+			return {"progress": {}}
+
+
+def write_progress_file(data: dict):
+	"""Writes data to the progress.json file."""
+	with open(PROGRESS_JSON_PATH, "w") as f:
+		json.dump(data, f, indent=2, sort_keys=True)
