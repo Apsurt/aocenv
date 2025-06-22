@@ -270,6 +270,13 @@ def post_answer(year: int, day: int, part: int, answer) -> str:
 		if isinstance(p_tag, Tag):
 			response_text = p_tag.get_text()
 
+	wait_messages = ["You gave an answer too recently", "You have to wait"]
+	is_wait_message = any(msg in response_text for msg in wait_messages)
+
+	if is_wait_message:
+		logger.warning(f"Rate limit hit. Response: {response_text}")
+		return response_text
+
 	# 3. Save the new result to the cache
 	logger.info("Saving new submission result to cache.")
 	cached_data[part_key]["submissions"].append(
