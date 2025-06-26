@@ -98,8 +98,6 @@ def submit(answer, part: int) -> str:
 		logger.error(err_msg)
 		return err_msg
 
-	response_text = _utils.post_answer(year, day, part, answer)
-
 	progress_data = _utils.read_progress_file()
 	year_str = str(year)
 	day_str = str(day)
@@ -108,7 +106,42 @@ def submit(answer, part: int) -> str:
 		progress_data["progress"][year_str] = {}
 
 	current_stars = progress_data["progress"][year_str].get(day_str, 0)
+	str_answer = str(answer)
 
+	# If the puzzle part is already completed, check against the known correct answer
+	if current_stars >= part:
+		logger.info(
+			f"Part {part} for {year}-{day} is already completed. "
+			"Verifying answer locally."
+		)
+		correct_answers = _utils.scrape_day_page_for_answers(year, day)
+		known_correct_answer = correct_answers.get(part)
+
+		if known_correct_answer is not None:
+			if str_answer == known_correct_answer:
+				logger.info(
+					f"Your answer '{str_answer}' is correct! "
+					"(Matches previously submitted answer)"
+				)
+				return f"✅ Your answer '{str_answer}' is correct!"
+			else:
+				logger.warning(
+					f"Your answer '{str_answer}' is incorrect. "
+					f"The correct answer was '{known_correct_answer}'."
+				)
+				return (
+					f"❌ Your answer '{str_answer}' is incorrect. "
+					f"The correct answer was '{known_correct_answer}'."
+				)
+		else:
+			logger.warning(
+				"Could not retrieve correct answer from AoC website for verification."
+			)
+			msg = "⚠️ Puzzle already completed"
+			msg += ", but could not verify answer against AoC website."
+			return msg
+
+	response_text = _utils.post_answer(year, day, part, answer)
 
 	if "That's the right answer!" in response_text:
 		logger.info("Answer is correct!")

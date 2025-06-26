@@ -512,6 +512,7 @@ def perform_clear(items_to_clear: list[str]):
 	else:
 		click.secho("\nNo items were selected to be cleared.", fg="yellow")
 
+
 def read_progress_file() -> dict:
 	"""Reads and parses the progress.json file."""
 	if not PROGRESS_JSON_PATH.exists():

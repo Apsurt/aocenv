@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed a critical bug where temporary rate-limit/cooldown messages from the server were incorrectly cached, preventing successful submission of a correct answer after a cooldown period.
 
+### Added
+- The `aoc.submit()` function now verifies answers locally against the Advent of Code website if the puzzle part is already completed, providing immediate feedback without re-submitting.
+
 ### Fixed
 - Mocked session cookie in `test_post_answer` to prevent CI failures due to missing `config.ini`.
 

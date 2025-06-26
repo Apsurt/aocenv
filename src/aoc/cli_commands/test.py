@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 
 import click
 
@@ -140,7 +141,10 @@ def test_run():
 
 		try:
 			result = subprocess.run(
-				["python", NOTEPAD_PATH], capture_output=True, text=True, env=test_env
+				[sys.executable, NOTEPAD_PATH],
+				capture_output=True,
+				text=True,
+				env=test_env,
 			)
 			output = result.stdout.strip()
 			click.echo(output)
