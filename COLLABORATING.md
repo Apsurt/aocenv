@@ -14,16 +14,14 @@ This document provides guidelines for contributing to the project. Please feel f
     git clone https://github.com/YOUR-USERNAME/aoc-env.git
     cd aoc-env
     ```
-3.  **Set up your environment**. This project uses `uv` for package and environment management.
+3.  **Set up your environment**.
     ```bash
-    # Create the virtual environment
-    uv venv
-
-    # Activate the environment
+    # Create and activate a virtual environment
+    python3 -m venv .venv
     source .venv/bin/activate
 
     # Install the project in editable mode
-    uv pip install -e ./env_src/
+    pip install -e .
     ```
 
 ### Making Changes
