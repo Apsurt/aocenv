@@ -19,6 +19,7 @@ uv.lock
 .logs/
 config.ini
 .context.json
+GEMINI.md
 
 # IDEs
 .idea/
