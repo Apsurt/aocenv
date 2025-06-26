@@ -24,14 +24,14 @@ There are two ways to use this project: as a user solving puzzles or as a contri
 
 ### As a User (Recommended)
 
-This is the standard way to use the project for your own Advent of Code solutions. You will create your own personal repository from this template.
+This is the standard way to use the project for your own Advent of Code solutions. You will create your own personal fork of this repository.
 
-1.  **Create from Template**: On the GitHub page for this repository, click the green **"Use this template"** button and select "Create a new repository". Give your new personal repository a name (e.g., `my-aoc-solutions`).
+1.  **Fork the Repository**: On the GitHub page for this repository, click the **"Fork"** button in the top-right corner. This will create a copy of the repository under your own GitHub account.
 
-2.  **Clone Your New Repository**: Clone the new repository you just created to your local machine.
+2.  **Clone Your Fork**: Clone the forked repository to your local machine.
     ```bash
-    git clone https://github.com/YOUR-USERNAME/my-aoc-solutions.git
-    cd my-aoc-solutions
+    git clone https://github.com/YOUR-USERNAME/aoc-env.git
+    cd aoc-env
     ```
 
 3.  **Set Up Environment**: Create a virtual environment and install the project and its dependencies. `uv` is recommended for its speed, but `pip` and `venv` work perfectly well.
