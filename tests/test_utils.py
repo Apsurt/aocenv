@@ -41,12 +41,14 @@ def test_get_aoc_data_from_web(monkeypatch, tmp_path, requests_mock):
 	assert cached_file.read_text() == "mocked input"
 
 
-def test_post_answer(requests_mock):
+def test_post_answer(monkeypatch, requests_mock):
 	"""Tests submitting an answer and parsing the response."""
 	# Arrange
 	# Mock the POST request and the HTML response from the server
 	mock_html = "<article><p>That's the right answer!</p></article>"
 	requests_mock.post("https://adventofcode.com/2025/day/1/answer", text=mock_html)
+	# Mock the session cookie to prevent ConnectionError
+	monkeypatch.setattr(_utils, "get_session_cookie", lambda: "fake_cookie")
 
 	# Act
 	response = _utils.post_answer(2025, 1, 1, "my_answer")
