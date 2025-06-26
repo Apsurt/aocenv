@@ -22,7 +22,7 @@ dependencies = [
 aoc = "aoc.cli:cli"
 
 [project.optional-dependencies]
-dev = ["ruff", "pytest", "requests-mock"]
+dev = ["ruff", "pytest", "pytest-cov", "requests-mock"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
