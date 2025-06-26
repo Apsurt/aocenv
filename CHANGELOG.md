@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- A GitHub Actions CI workflow to run tests and linting on every push and pull request.
+- `pytest-cov` for code coverage analysis.
+
+### Changed
+- The `README.md` has been overhauled for clarity, adding a comprehensive Usage section and simplifying the overall structure.
+
+### Docs
+- Updated `COLLABORATING.md` to reflect the current `pip` and `pyproject.toml` based setup.
+- Updated `README.md` to switch from a template-based to a fork-based approach for user setup.
+
+### Chore
+- Consolidated all dependencies into `pyproject.toml` and removed the redundant `src/requirements.txt`.
+- Added `GEMINI.md` to `.gitignore`.
+
 ### Changed
 - The `aoc.submit()` function now automatically updates the local `progress.json` file upon a correct submission, keeping local stats in sync without needing a full `aoc sync`.
 
