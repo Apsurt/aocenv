@@ -1,0 +1,45 @@
+[project]
+name = "aocenv"
+version = "0.1.0"
+description = "A CLI and library for Advent of Code environments."
+authors = [
+    {name = "Tymon Becella", email = "tymon.becella@gmail.com"},
+]
+readme = "README.md"
+requires-python = ">=3.12"
+keywords = ["aoc", "advent-of-code", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "click",
+]
+
+[dependency-groups]
+dev = [
+  "pytest"
+]
+
+[project.scripts]
+aoc = "aoc.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.uv]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aoc"]
