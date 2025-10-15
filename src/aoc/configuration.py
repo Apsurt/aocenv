@@ -1,6 +1,30 @@
 import os
+import configparser
 import click
 from .constants import MAIN_CONTENTS
+
+def create_default_config(path):
+    config = configparser.ConfigParser()
+    config["settings"] = {
+        "bind_on_correct": "True",
+        "clear_on_bind": "False",
+        "commit_on_bind": "False",
+    }
+    config["variables"] = {
+        "path": path,
+    }
+    return config
+
+def get_config():
+    config_path = "config.toml"
+
+    assert os.path.exists(config_path)
+
+    with open(config_path, "r") as f:
+        config = configparser.ConfigParser()
+        config.read_file(f)
+
+    return config
 
 def build_environment(path):
     files = ["main.py", "config.toml"]

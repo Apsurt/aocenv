@@ -1,7 +1,6 @@
 import os
 import click
-import configparser
-from .configuration import run_wizard, build_environment
+from .configuration import create_default_config, get_config, run_wizard, build_environment
 
 @click.group()
 def cli():
@@ -23,27 +22,14 @@ def init(path: str, default: bool):
     if not os.path.exists(path):
         os.mkdir(path)
 
-
-    config = configparser.ConfigParser()
-    config["settings"] = {}
-    config["variables"] = {}
+    config = create_default_config(path)
 
     if not default:
         config = run_wizard(config)
-    else:
-        config["settings"] = {
-            "bind_on_correct": "True",
-            "clear_on_bind": "False",
-            "commit_on_bind": "False",
-        }
-
-    config["variables"] = {
-        "path": path,
-    }
 
     build_environment(path)
     config_path = os.path.join(path, "config.toml")
-    with open(config_path, 'w') as configfile:
+    with open(config_path, "w") as configfile:
         config.write(configfile)
 
 @cli.command()
