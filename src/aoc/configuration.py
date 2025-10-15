@@ -27,6 +27,12 @@ def get_config():
 
     return config
 
+def get_session_cookies():
+    config = get_config()
+    cookies = dict()
+    cookies["session"] = config["variables"]["session_cookies"]
+    return cookies
+
 def build_environment(path):
     files = ["main.py", "config.toml"]
     directories = [".aoc", ".aoc/.cache", "solutions", ".aoc/inputs"]

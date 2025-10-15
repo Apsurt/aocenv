@@ -18,6 +18,7 @@ classifiers = [
 
 dependencies = [
     "click",
+    "requests>=2.32.5",
 ]
 
 [dependency-groups]
