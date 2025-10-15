@@ -35,7 +35,7 @@ def get_session_cookies():
 
 def build_environment(path):
     files = ["main.py", "config.toml"]
-    directories = [".aoc", ".aoc/.cache", "solutions", ".aoc/inputs"]
+    directories = [".aoc", ".aoc/.cache", "solutions", ".aoc/.cache/inputs"]
 
     for dir in directories:
         p = os.path.join(path, dir)
