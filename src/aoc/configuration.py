@@ -1,12 +1,13 @@
 import os
+import click
 from .constants import MAIN_CONTENTS
 
 def build_environment(path):
     files = ["main.py", "config.toml"]
-    directories = ["", ".cache", "solutions", "inputs"]
+    directories = [".aoc", ".aoc/.cache", "solutions", ".aoc/inputs"]
 
     for dir in directories:
-        p = os.path.join(path, ".aoc", dir)
+        p = os.path.join(path, dir)
         if not os.path.isdir(p):
             os.mkdir(p)
 
@@ -19,4 +20,9 @@ def build_environment(path):
                 f.write("")
 
 def run_wizard(config):
+    config["settings"] = {
+        "bind_on_correct": str(click.confirm('Do you want the solution to bind when you submit correct solution?', True)),
+        "clear_on_bind": str(click.confirm('Do you want to main.py to be cleared when you bind the soution?')),
+        "commit_on_bind": str(click.confirm('Do you want to commit your solution when you bind the solution?')),
+    }
     return config

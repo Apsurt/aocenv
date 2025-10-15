@@ -23,7 +23,6 @@ def init(path: str, default: bool):
     if not os.path.exists(path):
         os.mkdir(path)
 
-    build_environment(path)
 
     config = configparser.ConfigParser()
     config["settings"] = {}
@@ -33,13 +32,16 @@ def init(path: str, default: bool):
         config = run_wizard(config)
     else:
         config["settings"] = {
-            "fav_color": "blue"
+            "bind_on_correct": "True",
+            "clear_on_bind": "False",
+            "commit_on_bind": "False",
         }
 
-        config["variables"] = {
-            "path": path,
-        }
+    config["variables"] = {
+        "path": path,
+    }
 
+    build_environment(path)
     config_path = os.path.join(path, "config.toml")
     with open(config_path, 'w') as configfile:
         config.write(configfile)

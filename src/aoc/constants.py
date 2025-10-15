@@ -3,7 +3,6 @@ MAIN_CONTENTS = """import aoc
 
 def solve():
     answer = None
-
     return answer
 
 def main():
