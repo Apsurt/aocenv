@@ -46,5 +46,13 @@ def init(path: str, default: bool):
     with open(config_path, 'w') as configfile:
         config.write(configfile)
 
+@cli.command()
+def run():
+    pass
+
+@cli.command()
+def test():
+    pass
+
 if __name__ == "__main__":
     cli()
