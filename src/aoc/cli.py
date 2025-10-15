@@ -1,7 +1,7 @@
 import os
 import click
 import configparser
-from .cli_commands import run_wizard, build_environment
+from .configuration import run_wizard, build_environment
 
 @click.group()
 def cli():
@@ -20,7 +20,8 @@ def init(path: str, default: bool):
         path = os.path.join(base_path, path)
     else:
         path = base_path
-    assert os.path.exists(path)
+    if not os.path.exists(path):
+        os.mkdir(path)
 
     build_environment(path)
 
