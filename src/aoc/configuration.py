@@ -3,7 +3,7 @@ import configparser
 import click
 from .constants import MAIN_CONTENTS
 
-def create_default_config(path):
+def create_default_config(path, cookies):
     config = configparser.ConfigParser()
     config["settings"] = {
         "bind_on_correct": "True",
@@ -12,6 +12,7 @@ def create_default_config(path):
     }
     config["variables"] = {
         "path": path,
+        "session_cookies": cookies
     }
     return config
 
@@ -44,6 +45,10 @@ def build_environment(path):
                 f.write("")
 
 def run_wizard(config):
+    config["variables"] = {
+        "path": config["variables"]["path"],
+        "session_cookies": click.prompt('Please paste your session cookies. (Instructions in README.md)', type=str),
+    }
     config["settings"] = {
         "bind_on_correct": str(click.confirm('Do you want the solution to bind when you submit correct solution?', True)),
         "clear_on_bind": str(click.confirm('Do you want to main.py to be cleared when you bind the soution?')),

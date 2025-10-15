@@ -1,6 +1,6 @@
 import os
 import click
-from .configuration import create_default_config, get_config, run_wizard, build_environment
+from .configuration import create_default_config, run_wizard, build_environment
 
 @click.group()
 def cli():
@@ -8,21 +8,22 @@ def cli():
     pass
 
 @cli.command()
-@click.argument("path", required=False)
+@click.argument("path", required=True)
+@click.argument("session_cookies", required=False)
 @click.option("--default", is_flag=True)
-def init(path: str, default: bool):
+def init(path: str, session_cookies: str, default: bool):
     """Runs configuration the wizard."""
 
-    base_path = os.getcwd()
+    if not os.path.isabs(path):
+        path = os.path.abspath(path)
 
-    if path:
-        path = os.path.join(base_path, path)
-    else:
-        path = base_path
     if not os.path.exists(path):
         os.mkdir(path)
 
-    config = create_default_config(path)
+    if session_cookies is None:
+        session_cookies = ""
+
+    config = create_default_config(path, session_cookies)
 
     if not default:
         config = run_wizard(config)
