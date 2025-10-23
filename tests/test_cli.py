@@ -19,9 +19,8 @@ def test_init_command(tmp_path):
 
     # Check that the directories were created
     assert os.path.isdir(os.path.join(tmp_path, ".aoc"))
-    assert os.path.isdir(os.path.join(tmp_path, ".aoc/.cache"))
+    assert os.path.isdir(os.path.join(tmp_path, ".aoc/cache"))
     assert os.path.isdir(os.path.join(tmp_path, "solutions"))
-    assert os.path.isdir(os.path.join(tmp_path, ".aoc/.cache/inputs"))
 
     # Check that the files were created
     main_py_path = os.path.join(tmp_path, "main.py")

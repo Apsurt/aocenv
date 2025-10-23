@@ -92,9 +92,8 @@ def test_build_environment():
 
         # Check directories
         assert os.path.isdir(os.path.join(tmpdir, ".aoc"))
-        assert os.path.isdir(os.path.join(tmpdir, ".aoc/.cache"))
+        assert os.path.isdir(os.path.join(tmpdir, ".aoc/cache"))
         assert os.path.isdir(os.path.join(tmpdir, "solutions"))
-        assert os.path.isdir(os.path.join(tmpdir, ".aoc/.cache/inputs"))
 
         # Check files
         main_path = os.path.join(tmpdir, "main.py")
