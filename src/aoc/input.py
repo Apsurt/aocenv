@@ -84,16 +84,18 @@ class Input:
     A fluent interface for parsing raw string inputs, inspired by common
     Advent of Code data structures.
     """
+    raw: str
+    _value: Any
+
     def __init__(self, raw_data: str | None = None):
         if raw_data is None:
             fetched_input = get_input(get_context())
             self.raw = fetched_input.raw
             self._value = fetched_input.raw
         else:
-            self.raw: str = raw_data
-            self._value: Any = raw_data
+            self.raw = raw_data
+            self._value = raw_data
 
-    # --- Pythonic Integration ---
     def __len__(self) -> int:
         if hasattr(self._value, '__len__'):
             return len(self._value)
