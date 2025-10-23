@@ -6,6 +6,7 @@ from typing import Any, Callable, Generic, TypeVar, List, Tuple, Dict, Iterable
 import requests
 from .context import Context, get_context
 from .configuration import get_session_cookies
+from .cache import read_input_cache, write_input_cache
 
 # Type variable for generic usage
 T = TypeVar('T')
@@ -205,7 +206,8 @@ class Input:
 def get_input(ctx: Context) -> "Input":
     """
     Fetches the puzzle input for a given year and day from the Advent of Code
-    website.
+    website. Uses file-based caching to avoid repeated network requests.
+    Cache is account-aware to support multiple AOC accounts.
 
     Args:
         ctx: The context object containing the year and day.
@@ -217,11 +219,22 @@ def get_input(ctx: Context) -> "Input":
     if not cookies or "session" not in cookies:
         raise ValueError("Session cookie is not set.")
 
+    # Check cache first
+    cached_content = read_input_cache(ctx, cookies)
+    if cached_content is not None:
+        return Input(cached_content)
+
+    # Fetch from web if not cached
     url = f"https://adventofcode.com/{ctx.year}/day/{ctx.day}/input"
 
     try:
         response = requests.get(url, cookies=cookies)
         response.raise_for_status()
-        return Input(response.text)
+        content = response.text
+
+        # Cache the result
+        write_input_cache(ctx, cookies, content)
+
+        return Input(content)
     except requests.exceptions.RequestException as e:
         raise RuntimeError(f"Failed to fetch input: {e}") from e
