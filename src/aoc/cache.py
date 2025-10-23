@@ -33,7 +33,7 @@ def get_input_cache_path(ctx: Context, cookies: Dict[str, str]) -> Path:
         Path to the input cache file.
     """
     session_hash = _get_session_hash(cookies)
-    cache_dir = Path.home() / ".aoc_cache" / session_hash / str(ctx.year) / "inputs"
+    cache_dir = Path(".aoc") / "cache" / session_hash / str(ctx.year) / "inputs"
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir / f"day{ctx.day}.txt"
 

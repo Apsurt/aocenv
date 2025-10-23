@@ -343,7 +343,8 @@ def test_get_input_cache_path():
     cache_path = get_input_cache_path(ctx, cookies)
 
     # Assert
-    assert ".aoc_cache" in str(cache_path)
+    assert ".aoc" in str(cache_path)
+    assert "cache" in str(cache_path)
     assert "2024" in str(cache_path)
     assert "inputs" in str(cache_path)
     assert cache_path.name == "day5.txt"
@@ -369,7 +370,9 @@ def test_write_and_read_input_cache():
     test_content = "test puzzle input\nwith multiple lines"
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
             # Act - Write cache
             write_input_cache(ctx, cookies, test_content)
 
@@ -382,6 +385,8 @@ def test_write_and_read_input_cache():
 
             # Assert - Content matches
             assert cached_content == test_content
+        finally:
+            os.chdir(old_cwd)
 
 def test_read_input_cache_not_exists():
     # Arrange
@@ -447,7 +452,9 @@ def test_get_input_caches_on_fetch(mock_get):
     mock_get.return_value = mock_response
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
             with patch("aoc.input.get_session_cookies", return_value=cookies):
                 # Act - First call should fetch and cache
                 result = get_input(ctx)
@@ -460,6 +467,8 @@ def test_get_input_caches_on_fetch(mock_get):
                 cache_path = get_input_cache_path(ctx, cookies)
                 assert cache_path.exists()
                 assert cache_path.read_text() == fetched_data
+        finally:
+            os.chdir(old_cwd)
 
 @patch("requests.get")
 def test_get_input_cache_avoids_second_request(mock_get):
@@ -473,7 +482,9 @@ def test_get_input_cache_avoids_second_request(mock_get):
     mock_get.return_value = mock_response
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
             with patch("aoc.input.get_session_cookies", return_value=cookies):
                 # Act - First call
                 result1 = get_input(ctx)
@@ -486,5 +497,7 @@ def test_get_input_cache_avoids_second_request(mock_get):
                 # Assert - No additional HTTP request
                 assert mock_get.call_count == 1
                 assert result2.raw == fetched_data
+        finally:
+            os.chdir(old_cwd)
 
 # endregion
