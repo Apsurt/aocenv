@@ -135,10 +135,32 @@ def test_input_paragraphs():
     assert inp.get() == ["1000\n2000", "4000", "5000\n6000"]
 
 def test_input_split():
+    # With separator
     inp_str = Input("a,b,c").split(',')
     assert inp_str.get() == ['a', 'b', 'c']
     inp_list = Input(["1-a", "2-b"]).lines().split('-')
     assert inp_list.get() == [['1', 'a'], ['2', 'b']]
+
+    # Without separator (whitespace splitting)
+    # Single spaces
+    inp1 = Input("abc def").split()
+    assert inp1.get() == ['abc', 'def']
+
+    # Multiple spaces
+    inp2 = Input("abc   def").split()
+    assert inp2.get() == ['abc', 'def']
+
+    # Mixed whitespace (spaces, tabs, newlines)
+    inp3 = Input("abc\t   \n \t   def").split()
+    assert inp3.get() == ['abc', 'def']
+
+    # List of strings
+    inp4 = Input(["1  2  3", "4\t5\t6"]).split()
+    assert inp4.get() == [['1', '2', '3'], ['4', '5', '6']]
+
+    # Leading/trailing whitespace
+    inp5 = Input("  abc   def  ").split()
+    assert inp5.get() == ['abc', 'def']
 
 def test_input_map():
     inp = Input(RAW_NUMBERS).lines().map(int)
