@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, Mock
 import requests
+import os
 from aoc.context import Context
 from aoc.input import Grid, Input, get_input
 
@@ -106,7 +107,7 @@ def test_input_pythonic_methods():
     assert len(inp) == 3
     assert inp[0] == "1721"
     assert inp[1:3] == ["979", "366"]
-    
+
     items = [item for item in inp]
     assert items == ["1721", "979", "366"]
 
@@ -210,6 +211,52 @@ def test_input_chaining():
         .get()
     )
     assert result == [11000]
+
+# endregion
+
+def _read_test_input_file(year: int, day: int) -> str:
+    """Helper to read content from a test input file."""
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, f"{year}_{day}.txt")
+    with open(file_path, 'r') as f:
+        return f.read()
+
+
+# region Custom Input Tests
+
+def test_input_2017_day_09():
+    raw_input = _read_test_input_file(2017, 9)
+    inp = Input(raw_input)
+
+    # Use findall to extract all garbage sections (including < and >)
+    garbage_sections = inp.findall(r'<[^>]*>').get()
+    assert len(garbage_sections) == 1756
+
+    # Use findall to count all opening braces
+    opening_braces = inp.findall(r'{').get()
+    assert len(opening_braces) == 1756
+
+def test_input_2024_day_15():
+    raw_input = _read_test_input_file(2024, 15)
+    inp = Input(raw_input)
+
+    # The input has a grid and then a line of directions
+    parts = inp.lines().get()
+    grid_str = "\n".join(parts[:-1])
+    directions_str = parts[-1]
+
+    # Test grid parsing
+    grid = Input(grid_str).grid()
+    assert grid.height == 69
+    assert grid.width == 50
+    assert grid.get(0, 0) == '#'
+    assert grid.get(24, 24) == '@'
+
+    # Test directions parsing
+    directions = Input(directions_str).findall(r'[<>^v]').get()
+    assert len(directions) == 1000
+    assert directions[0] == 'v'
+    assert directions[-1] == '<'
 
 # endregion
 
