@@ -3,6 +3,7 @@ Provides a powerful, fluent interface for parsing Advent of Code puzzle inputs.
 """
 import re
 from typing import Any, Callable, Generic, TypeVar, List, Tuple, Dict, Iterable
+from typing_extensions import Optional
 import requests
 from .context import Context, get_context
 from .configuration import get_session_cookies
@@ -133,7 +134,7 @@ class Input:
             self._value = [p.strip() for p in self._value.strip().split('\n\n') if p]
         return self
 
-    def split(self, sep: str) -> 'Input':
+    def split(self, sep: Optional[str] = None) -> 'Input':
         """Splits a string or each string in a list by a separator."""
         if isinstance(self._value, str):
             self._value = self._value.split(sep)
