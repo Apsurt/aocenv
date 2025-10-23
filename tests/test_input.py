@@ -114,6 +114,19 @@ def test_input_pythonic_methods():
     items = [item for item in inp]
     assert items == ["1721", "979", "366"]
 
+def test_input_len_non_iterable():
+    # Test __len__ fallback for non-iterable values
+    inp = Input("raw")
+    inp._value = 42  # Set to a non-iterable integer
+    assert len(inp) == 1
+
+def test_input_iter_non_iterable():
+    # Test __iter__ fallback for non-iterable values
+    inp = Input("raw")
+    inp._value = 42  # Set to a non-iterable integer
+    items = list(inp)
+    assert items == [42]
+
 def test_input_getitem_error():
     with pytest.raises(TypeError, match="Current value of type 'str' is not subscriptable."):
         Input("raw")[0]
@@ -339,15 +352,21 @@ def test_get_input_cache_path():
     ctx = Context(year=2024, day=5, part=1)
     cookies = {"session": "test_session_token"}
 
-    # Act
-    cache_path = get_input_cache_path(ctx, cookies)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
+            # Act
+            cache_path = get_input_cache_path(ctx, cookies)
 
-    # Assert
-    assert ".aoc" in str(cache_path)
-    assert "cache" in str(cache_path)
-    assert "2024" in str(cache_path)
-    assert "inputs" in str(cache_path)
-    assert cache_path.name == "day5.txt"
+            # Assert
+            assert ".aoc" in str(cache_path)
+            assert "cache" in str(cache_path)
+            assert "2024" in str(cache_path)
+            assert "inputs" in str(cache_path)
+            assert cache_path.name == "day5.txt"
+        finally:
+            os.chdir(old_cwd)
 
 def test_get_input_cache_path_different_sessions():
     # Arrange
@@ -355,13 +374,19 @@ def test_get_input_cache_path_different_sessions():
     cookies1 = {"session": "session_token_1"}
     cookies2 = {"session": "session_token_2"}
 
-    # Act
-    cache_path1 = get_input_cache_path(ctx, cookies1)
-    cache_path2 = get_input_cache_path(ctx, cookies2)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
+            # Act
+            cache_path1 = get_input_cache_path(ctx, cookies1)
+            cache_path2 = get_input_cache_path(ctx, cookies2)
 
-    # Assert - Different sessions should have different cache paths
-    assert cache_path1 != cache_path2
-    assert cache_path1.parent.parent.parent != cache_path2.parent.parent.parent
+            # Assert - Different sessions should have different cache paths
+            assert cache_path1 != cache_path2
+            assert cache_path1.parent.parent.parent != cache_path2.parent.parent.parent
+        finally:
+            os.chdir(old_cwd)
 
 def test_write_and_read_input_cache():
     # Arrange
@@ -410,7 +435,9 @@ def test_input_cache_isolation_between_accounts():
     content2 = "Account 2 puzzle input"
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
             # Act - Write cache for both accounts
             write_input_cache(ctx, cookies1, content1)
             write_input_cache(ctx, cookies2, content2)
@@ -423,6 +450,8 @@ def test_input_cache_isolation_between_accounts():
             assert cached1 == content1
             assert cached2 == content2
             assert cached1 != cached2
+        finally:
+            os.chdir(old_cwd)
 
 @patch("requests.get")
 def test_get_input_uses_cache(mock_get):

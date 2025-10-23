@@ -34,7 +34,6 @@ def get_input_cache_path(ctx: Context, cookies: Dict[str, str]) -> Path:
     """
     session_hash = _get_session_hash(cookies)
     cache_dir = Path(".aoc") / "cache" / session_hash / str(ctx.year) / "inputs"
-    cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir / f"day{ctx.day}.txt"
 
 
@@ -65,4 +64,5 @@ def write_input_cache(ctx: Context, cookies: Dict[str, str], content: str) -> No
         content: The puzzle input to cache.
     """
     cache_path = get_input_cache_path(ctx, cookies)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
     cache_path.write_text(content)
