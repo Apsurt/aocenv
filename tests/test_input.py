@@ -1,5 +1,8 @@
 import pytest
-from aoc.input import Grid, Input
+from unittest.mock import patch, Mock
+import requests
+from aoc.context import Context
+from aoc.input import Grid, Input, get_input
 
 RAW_NUMBERS = """
 1721
@@ -87,6 +90,16 @@ def test_input_init():
     inp = Input("raw")
     assert inp.raw == "raw"
     assert inp.get() == "raw"
+
+@patch("aoc.input.get_input", return_value=Input("mocked input"))
+def test_input_init_fetches_input(mock_get_input):
+    # Act
+    inp = Input()
+
+    # Assert
+    assert inp.raw == "mocked input"
+    mock_get_input.assert_called_once()
+
 
 def test_input_pythonic_methods():
     inp = Input(RAW_NUMBERS).lines()
@@ -197,5 +210,49 @@ def test_input_chaining():
         .get()
     )
     assert result == [11000]
+
+# endregion
+
+# region get_input Tests
+
+@patch("requests.get")
+def test_get_input_success(mock_get):
+    # Arrange
+    ctx = Context(year=2025, day=1, part=1)
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.text = "mocked input"
+    mock_get.return_value = mock_response
+
+    with patch("aoc.input.get_session_cookies", return_value={"session": "mock_token"}):
+        # Act
+        result = get_input(ctx)
+
+        # Assert
+        assert isinstance(result, Input)
+        assert result.raw == "mocked input"
+        mock_get.assert_called_once_with(
+            "https://adventofcode.com/2025/day/1/input",
+            cookies={"session": "mock_token"},
+        )
+
+@patch("requests.get")
+def test_get_input_failure(mock_get):
+    # Arrange
+    ctx = Context(year=2025, day=1, part=1)
+    mock_get.side_effect = requests.exceptions.RequestException("mock error")
+
+    with patch("aoc.input.get_session_cookies", return_value={"session": "mock_token"}):
+        # Act & Assert
+        with pytest.raises(RuntimeError, match="Failed to fetch input: mock error"):
+            get_input(ctx)
+
+def test_get_input_no_token():
+    # Arrange
+    ctx = Context(year=2025, day=1, part=1)
+    with patch("aoc.input.get_session_cookies", return_value=None):
+        # Act & Assert
+        with pytest.raises(ValueError, match="Session cookie is not set."):
+            get_input(ctx)
 
 # endregion
