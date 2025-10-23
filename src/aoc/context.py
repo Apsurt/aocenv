@@ -40,7 +40,7 @@ def find_project_root(start_path: Optional[str] = None) -> Optional[Path]:
         current = parent
 
 
-def extract_constants_from_main(main_path: Path) -> dict:
+def extract_constants_from_main(main_path: Path) -> dict[str, int | None]:
     """
     Uses AST to extract YEAR, DAY, and PART constants from main.py.
 
@@ -50,7 +50,7 @@ def extract_constants_from_main(main_path: Path) -> dict:
     Returns:
         Dictionary with keys 'year', 'day', 'part' (values are None if not found).
     """
-    constants = {'year': None, 'day': None, 'part': None}
+    constants: dict[str, int | None] = {'year': None, 'day': None, 'part': None}
 
     try:
         with open(main_path, 'r') as f:
@@ -63,11 +63,14 @@ def extract_constants_from_main(main_path: Path) -> dict:
                 for target in node.targets:
                     if isinstance(target, ast.Name):
                         if target.id == 'YEAR' and isinstance(node.value, ast.Constant):
-                            constants['year'] = node.value.value
+                            if isinstance(node.value.value, int):
+                                constants['year'] = node.value.value
                         elif target.id == 'DAY' and isinstance(node.value, ast.Constant):
-                            constants['day'] = node.value.value
+                            if isinstance(node.value.value, int):
+                                constants['day'] = node.value.value
                         elif target.id == 'PART' and isinstance(node.value, ast.Constant):
-                            constants['part'] = node.value.value
+                            if isinstance(node.value.value, int):
+                                constants['part'] = node.value.value
 
                     # Handle tuple unpacking like: YEAR, DAY, PART = (2024, 15, 1)
                     elif isinstance(target, ast.Tuple):
@@ -76,12 +79,13 @@ def extract_constants_from_main(main_path: Path) -> dict:
                             values = [v.value for v in node.value.elts if isinstance(v, ast.Constant)]
 
                             for name, value in zip(names, values):
-                                if name == 'YEAR':
-                                    constants['year'] = value
-                                elif name == 'DAY':
-                                    constants['day'] = value
-                                elif name == 'PART':
-                                    constants['part'] = value
+                                if isinstance(value, int):
+                                    if name == 'YEAR':
+                                        constants['year'] = value
+                                    elif name == 'DAY':
+                                        constants['day'] = value
+                                    elif name == 'PART':
+                                        constants['part'] = value
 
     except (OSError, SyntaxError):
         pass

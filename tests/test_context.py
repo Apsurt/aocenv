@@ -2,7 +2,6 @@
 import tempfile
 import os
 from pathlib import Path
-import pytest
 from aoc.context import (
     Context,
     find_project_root,
