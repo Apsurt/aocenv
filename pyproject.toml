@@ -50,5 +50,10 @@ allow-direct-references = true
 python_executable = ".venv/bin/python"
 check_untyped_defs = true
 
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.0.0",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/aoc"]
