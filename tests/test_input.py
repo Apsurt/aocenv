@@ -2,8 +2,11 @@ import pytest
 from unittest.mock import patch, Mock
 import requests
 import os
+import tempfile
+from pathlib import Path
 from aoc.context import Context
 from aoc.input import Grid, Input, get_input
+from aoc.cache import get_input_cache_path, read_input_cache, write_input_cache
 
 RAW_NUMBERS = """
 1721
@@ -272,16 +275,18 @@ def test_get_input_success(mock_get):
     mock_get.return_value = mock_response
 
     with patch("aoc.input.get_session_cookies", return_value={"session": "mock_token"}):
-        # Act
-        result = get_input(ctx)
+        with patch("aoc.input.read_input_cache", return_value=None):
+            with patch("aoc.input.write_input_cache"):
+                # Act
+                result = get_input(ctx)
 
-        # Assert
-        assert isinstance(result, Input)
-        assert result.raw == "mocked input"
-        mock_get.assert_called_once_with(
-            "https://adventofcode.com/2025/day/1/input",
-            cookies={"session": "mock_token"},
-        )
+                # Assert
+                assert isinstance(result, Input)
+                assert result.raw == "mocked input"
+                mock_get.assert_called_once_with(
+                    "https://adventofcode.com/2025/day/1/input",
+                    cookies={"session": "mock_token"},
+                )
 
 @patch("requests.get")
 def test_get_input_failure(mock_get):
@@ -290,9 +295,10 @@ def test_get_input_failure(mock_get):
     mock_get.side_effect = requests.exceptions.RequestException("mock error")
 
     with patch("aoc.input.get_session_cookies", return_value={"session": "mock_token"}):
-        # Act & Assert
-        with pytest.raises(RuntimeError, match="Failed to fetch input: mock error"):
-            get_input(ctx)
+        with patch("aoc.input.read_input_cache", return_value=None):
+            # Act & Assert
+            with pytest.raises(RuntimeError, match="Failed to fetch input: mock error"):
+                get_input(ctx)
 
 def test_get_input_no_token():
     # Arrange
@@ -301,5 +307,162 @@ def test_get_input_no_token():
         # Act & Assert
         with pytest.raises(ValueError, match="Session cookie is not set."):
             get_input(ctx)
+
+# endregion
+
+# region Cache Tests
+
+def test_get_input_cache_path():
+    # Arrange
+    ctx = Context(year=2024, day=5, part=1)
+    cookies = {"session": "test_session_token"}
+
+    # Act
+    cache_path = get_input_cache_path(ctx, cookies)
+
+    # Assert
+    assert ".aoc_cache" in str(cache_path)
+    assert "2024" in str(cache_path)
+    assert "inputs" in str(cache_path)
+    assert cache_path.name == "day5.txt"
+
+def test_get_input_cache_path_different_sessions():
+    # Arrange
+    ctx = Context(year=2024, day=5, part=1)
+    cookies1 = {"session": "session_token_1"}
+    cookies2 = {"session": "session_token_2"}
+
+    # Act
+    cache_path1 = get_input_cache_path(ctx, cookies1)
+    cache_path2 = get_input_cache_path(ctx, cookies2)
+
+    # Assert - Different sessions should have different cache paths
+    assert cache_path1 != cache_path2
+    assert cache_path1.parent.parent.parent != cache_path2.parent.parent.parent
+
+def test_write_and_read_input_cache():
+    # Arrange
+    ctx = Context(year=2024, day=10, part=1)
+    cookies = {"session": "test_token"}
+    test_content = "test puzzle input\nwith multiple lines"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+            # Act - Write cache
+            write_input_cache(ctx, cookies, test_content)
+
+            # Assert - Cache file exists
+            cache_path = get_input_cache_path(ctx, cookies)
+            assert cache_path.exists()
+
+            # Act - Read cache
+            cached_content = read_input_cache(ctx, cookies)
+
+            # Assert - Content matches
+            assert cached_content == test_content
+
+def test_read_input_cache_not_exists():
+    # Arrange
+    ctx = Context(year=2099, day=99, part=1)
+    cookies = {"session": "test_token"}
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+            # Act
+            cached_content = read_input_cache(ctx, cookies)
+
+            # Assert
+            assert cached_content is None
+
+def test_input_cache_isolation_between_accounts():
+    # Arrange
+    ctx = Context(year=2024, day=1, part=1)
+    cookies1 = {"session": "account1_token"}
+    cookies2 = {"session": "account2_token"}
+    content1 = "Account 1 puzzle input"
+    content2 = "Account 2 puzzle input"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+            # Act - Write cache for both accounts
+            write_input_cache(ctx, cookies1, content1)
+            write_input_cache(ctx, cookies2, content2)
+
+            # Act - Read cache for both accounts
+            cached1 = read_input_cache(ctx, cookies1)
+            cached2 = read_input_cache(ctx, cookies2)
+
+            # Assert - Each account gets its own cached content
+            assert cached1 == content1
+            assert cached2 == content2
+            assert cached1 != cached2
+
+@patch("requests.get")
+def test_get_input_uses_cache(mock_get):
+    # Arrange
+    ctx = Context(year=2024, day=1, part=1)
+    cached_data = "cached puzzle input"
+    cookies = {"session": "test_token"}
+
+    with patch("aoc.input.get_session_cookies", return_value=cookies):
+        with patch("aoc.input.read_input_cache", return_value=cached_data):
+            # Act
+            result = get_input(ctx)
+
+            # Assert - Should return cached data without making HTTP request
+            assert result.raw == cached_data
+            mock_get.assert_not_called()
+
+@patch("requests.get")
+def test_get_input_caches_on_fetch(mock_get):
+    # Arrange
+    ctx = Context(year=2024, day=2, part=1)
+    fetched_data = "freshly fetched input"
+    cookies = {"session": "mock_token"}
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.text = fetched_data
+    mock_get.return_value = mock_response
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+            with patch("aoc.input.get_session_cookies", return_value=cookies):
+                # Act - First call should fetch and cache
+                result = get_input(ctx)
+
+                # Assert - Data is correct
+                assert result.raw == fetched_data
+                mock_get.assert_called_once()
+
+                # Assert - Cache file was created
+                cache_path = get_input_cache_path(ctx, cookies)
+                assert cache_path.exists()
+                assert cache_path.read_text() == fetched_data
+
+@patch("requests.get")
+def test_get_input_cache_avoids_second_request(mock_get):
+    # Arrange
+    ctx = Context(year=2024, day=3, part=1)
+    fetched_data = "puzzle input from web"
+    cookies = {"session": "mock_token"}
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.text = fetched_data
+    mock_get.return_value = mock_response
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("pathlib.Path.home", return_value=Path(tmpdir)):
+            with patch("aoc.input.get_session_cookies", return_value=cookies):
+                # Act - First call
+                result1 = get_input(ctx)
+                assert result1.raw == fetched_data
+                assert mock_get.call_count == 1
+
+                # Act - Second call should use cache
+                result2 = get_input(ctx)
+
+                # Assert - No additional HTTP request
+                assert mock_get.call_count == 1
+                assert result2.raw == fetched_data
 
 # endregion
