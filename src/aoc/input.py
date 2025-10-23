@@ -3,6 +3,9 @@ Provides a powerful, fluent interface for parsing Advent of Code puzzle inputs.
 """
 import re
 from typing import Any, Callable, Generic, TypeVar, List, Tuple, Dict, Iterable
+import requests
+from .context import Context, get_context
+from .configuration import get_session_cookies
 
 # Type variable for generic usage
 T = TypeVar('T')
@@ -81,9 +84,14 @@ class Input:
     A fluent interface for parsing raw string inputs, inspired by common
     Advent of Code data structures.
     """
-    def __init__(self, raw_data: str):
-        self.raw: str = raw_data
-        self._value: Any = raw_data
+    def __init__(self, raw_data: str | None = None):
+        if raw_data is None:
+            fetched_input = get_input(get_context())
+            self.raw = fetched_input.raw
+            self._value = fetched_input.raw
+        else:
+            self.raw: str = raw_data
+            self._value: Any = raw_data
 
     # --- Pythonic Integration ---
     def __len__(self) -> int:
@@ -190,3 +198,28 @@ class Input:
         else:
             raise TypeError(f"Cannot convert type '{type(self._value).__name__}' to a Grid.")
         return Grid(grid_data)
+
+
+def get_input(ctx: Context) -> "Input":
+    """
+    Fetches the puzzle input for a given year and day from the Advent of Code
+    website.
+
+    Args:
+        ctx: The context object containing the year and day.
+
+    Returns:
+        An Input object containing the puzzle input.
+    """
+    cookies = get_session_cookies()
+    if not cookies or "session" not in cookies:
+        raise ValueError("Session cookie is not set.")
+
+    url = f"https://adventofcode.com/{ctx.year}/day/{ctx.day}/input"
+
+    try:
+        response = requests.get(url, cookies=cookies)
+        response.raise_for_status()
+        return Input(response.text)
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"Failed to fetch input: {e}") from e
