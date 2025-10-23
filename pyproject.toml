@@ -21,9 +21,11 @@ dependencies = [
     "requests>=2.32.5",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
-  "pytest"
+  "pytest",
+  "mypy",
+  "ruff"
 ]
 
 [project.scripts]
