@@ -33,5 +33,10 @@ def submit(answer: str):
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
-    msg = soup.find("article").get_text().strip()
+    article = soup.find("article")
+    if article:
+        msg = article.get_text().strip()
+    else:
+        RuntimeError("Did not find what we were looking for. Are your session cookies up-to-date?")
+
     handle_response(msg)
