@@ -1,6 +1,7 @@
 import os
 import click
 from .configuration import create_default_config, run_wizard, build_environment
+from .run import run_main
 
 @click.group()
 def cli():
@@ -35,7 +36,9 @@ def init(path: str, session_cookies: str, default: bool):
 
 @cli.command()
 def run():
-    pass
+    """Runs the main.py file"""
+
+    run_main()
 
 @cli.command()
 def test():
