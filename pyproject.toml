@@ -1,7 +1,7 @@
 [project]
 name = "aocenv"
 version = "0.1.0"
-description = "A CLI and library for Advent of Code environments."
+description = "A CLI and package for Advent of Code environments."
 authors = [
     {name = "Tymon Becella", email = "tymon.becella@gmail.com"},
 ]
@@ -14,6 +14,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Operating System :: Unix",
+    "Topic :: Games/Entertainment :: Puzzle Games",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Filesystems",
+    "Typing :: Typed"
 ]
 
 dependencies = [
