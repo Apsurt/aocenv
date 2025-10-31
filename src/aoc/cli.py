@@ -1,4 +1,5 @@
 import os
+from typing_extensions import Optional
 import click
 from .configuration import create_default_config, run_wizard, build_environment
 from .run import run_main
@@ -12,7 +13,7 @@ def cli():
 @click.argument("path", required=True)
 @click.argument("session_cookies", required=False)
 @click.option("--default", is_flag=True)
-def init(path: str, session_cookies: str, default: bool):
+def init(path: str, session_cookies: Optional[str], default: bool):
     """Runs configuration the wizard"""
 
     if not os.path.isabs(path):
@@ -37,12 +38,16 @@ def init(path: str, session_cookies: str, default: bool):
 @cli.command()
 def run():
     """Runs the main.py file"""
+    #TODO Add timing flag
+
     run_main()
 
 @cli.command()
 @click.argument("name", required=False)
 def bind(name: str):
     """Binds the contents of main.py"""
+    #TODO
+
     pass
 
 @cli.command()
@@ -52,12 +57,14 @@ def bind(name: str):
 @click.argument("name", required=False)
 def load(year: int, day: int, part: int, name: str):
     """Loads saved solution into main.py"""
+    #TODO
+
     pass
 
 @cli.command()
 def test():
     """TBA"""
-    #TODO v0.1.0
+    #TODO in v0.2.0
     pass
 
 if __name__ == "__main__":

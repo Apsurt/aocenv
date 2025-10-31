@@ -4,6 +4,8 @@ from .configuration import get_session_cookies
 from bs4 import BeautifulSoup
 
 def handle_response(msg: str):
+    #TODO
+
     # cases:
     # WRONG CACHE
     # CORRECT CACHE

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Dict
 from .context import Context
 
-
 def _get_session_hash(cookies: Dict[str, str]) -> str:
     """
     Creates a hash of the session cookie to differentiate between accounts.
@@ -80,7 +79,9 @@ def get_submit_cache_path(ctx: Context, cookies: Dict[str, str]) -> Path:
     return cache_dir / f"day{ctx.day}part{ctx.part}.json"
 
 def read_submit_cache():
+    # TODO
     pass
 
 def write_submit_cache() -> None:
+    # TODO
     pass
