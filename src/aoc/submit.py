@@ -5,11 +5,11 @@ from bs4 import BeautifulSoup
 
 def handle_response(msg: str):
     # cases:
-    # wrong CACHE
-    # correct CACHE
-    # too fast NOCACHE
-    # already answered NOCACHE
-    pass
+    # WRONG CACHE
+    # CORRECT CACHE
+    # TOO_FAST NOCACHE
+    # ANSWERED NOCACHE
+    print(msg)
 
 def submit(answer: str):
     #TODO add cache
