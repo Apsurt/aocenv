@@ -1,7 +1,7 @@
 import os
 import configparser
 import click
-from .constants import MAIN_CONTENTS
+from .constants import MAIN_CONTENTS, GITIGNORE_CONTENTS
 
 def create_default_config(path, cookies):
     config = configparser.ConfigParser()
@@ -34,7 +34,7 @@ def get_session_cookies():
     return cookies
 
 def build_environment(path):
-    files = ["main.py", "config.toml"]
+    files = [".gitignore", "main.py", "config.toml"]
     directories = [".aoc", ".aoc/cache", "solutions"]
 
     for dir in directories:
@@ -47,6 +47,8 @@ def build_environment(path):
         with open(p, "w") as f:
             if "main.py" in p:
                 f.write(MAIN_CONTENTS)
+            elif ".gitignore" in p:
+                f.write(GITIGNORE_CONTENTS)
             else:
                 f.write("")
 
