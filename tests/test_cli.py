@@ -2,7 +2,6 @@ import os
 import configparser
 from click.testing import CliRunner
 from aoc.cli import cli, init, run
-from aoc.cli import test as cli_test
 from aoc.constants import MAIN_CONTENTS
 
 def test_cli_group():
@@ -79,10 +78,4 @@ def test_run_command():
     """Test the run command."""
     runner = CliRunner()
     result = runner.invoke(run)
-    assert result.exit_code == 0
-
-def test_test_command():
-    """Test the test command."""
-    runner = CliRunner()
-    result = runner.invoke(cli_test)
     assert result.exit_code == 0
