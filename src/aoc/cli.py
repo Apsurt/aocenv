@@ -67,11 +67,11 @@ def clear():
     """Sets the main.py contents to the default"""
     run_clear()
 
-@cli.command()
-def test():
-    """"""
-    #TODO in v0.2.0
-    pass
+# @cli.command()
+# def test():
+#     """"""
+#     #TODO in v0.2.0
+#     pass
 
 if __name__ == "__main__":
     cli()
