@@ -28,4 +28,7 @@ add printing instructions
 maybe some stars matrix to paste into readme idk
 test command to manually add provided test cases
 add docs
-more xustomization, like rename main.py
+more xustomization, like rename main.py, changing default template
+in new version there should be option to rebuild the env to the new v0.2.0 structure (if it changes)
+docs
+init with default and no cookies should raise error
