@@ -10,6 +10,14 @@ class Context:
     day: int
     part: int
 
+    def __post_init__(self):
+        if not (2015 <= self.year <= 2030):
+            raise ValueError(f"Invalid year: {self.year}")
+        if not (1 <= self.day <= 25):
+            raise ValueError(f"Invalid day: {self.day}")
+        if self.part not in (1, 2):
+            raise ValueError(f"Invalid part: {self.part}")
+
 
 def find_project_root(start_path: Optional[str] = None) -> Optional[Path]:
     if start_path is None:
