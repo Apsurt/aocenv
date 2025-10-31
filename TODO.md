@@ -28,3 +28,4 @@ add printing instructions
 maybe some stars matrix to paste into readme idk
 test command to manually add provided test cases
 add docs
+more xustomization, like rename main.py
