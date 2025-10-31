@@ -13,7 +13,7 @@ def run_main():
     #TODO add timing of execution
 
     if not os.path.exists("main.py"):
-        RuntimeError("")
+        FileNotFoundError("No main.py found")
 
     for cmd in ["uv", "python", "python3"]:
         if which(cmd):

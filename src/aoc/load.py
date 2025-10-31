@@ -14,7 +14,7 @@ def run_load(ctx: Context, name: Optional[str]):
     solution_path = get_solution_path(base_path, ctx) / filename
 
     if not os.path.exists(solution_path):
-        print(f"There is no binded solution: {solution_path}")
+        raise FileNotFoundError(f"There is no binded solution: {solution_path}")
 
     with open(solution_path, "r") as source:
         contents = source.read()

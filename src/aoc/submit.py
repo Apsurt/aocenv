@@ -55,7 +55,7 @@ def submit(answer: Any):
     if article:
         msg = article.get_text().strip()
     else:
-        RuntimeError("Did not find what we were looking for. Are your session cookies up-to-date?")
+        raise RuntimeError("Did not find what we were looking for. Are your session cookies up-to-date?")
 
     assert isinstance(msg, str)
 
