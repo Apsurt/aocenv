@@ -1,22 +1,27 @@
 # TODO
 
-## `src/aoc/run.py`
-- [ ] **Add timing of execution:** Implement a way to measure and display the execution time of the user's solution in `run_main`.
-
 ## `src/aoc/cache.py`
-- [ ] **Implement `read_submit_cache`:** Complete the `read_submit_cache` function to read submission results from the cache.
-- [ ] **Implement `write_submit_cache`:** Complete the `write_submit_cache` function to write submission results to the cache.
+- [ ] Implement `read_submit_cache`
+- [ ] Implement `write_submit_cache`
 
 ## `src/aoc/submit.py`
-- [ ] **Implement response handling:** In `handle_response`, parse the response message from Advent of Code to determine if the answer was correct, incorrect, submitted too recently, or already answered.
-- [ ] **Add caching for submissions:** In `submit`, before sending a request, check if the answer has been submitted before by using the submission cache.
+- [ ] Implement response handling
+- [ ] Add caching for submissions
+
+# v0.2.0
+
+## `src/aoc/bind.py`
+- [ ] Implement commit_on_bind feature
+
+## `src/aoc/run.py`
+- [ ] Add timing of execution
 
 ## `src/aoc/cli.py`
-- [ ] **Add timing flag to `run` command:** Add a `--time` or similar flag to the `run` command to enable/disable the execution timing feature.
-- [ ] **Implement `test` command:** Implement the `test` command for v0.2.0.
+- [ ] Add timing flag to `run` command
+- [ ] Implement `test` command
 
 ## Refactor
-- [ ] Refactor everything for v0.2.0
+- [ ] Refactor everything
 
 ## Tests
-- [ ] Add full test coverage for v0.2.0
+- [ ] Add full test coverage

@@ -3,7 +3,7 @@ from typing import Optional
 from pathlib import Path
 from .context import get_context
 from .configuration import get_config
-from .constants import MAIN_CONTENTS
+from .clear import run_clear
 from .misc import get_solution_filename, get_solution_path
 
 def run_bind(name: Optional[str], force: bool):
@@ -34,8 +34,7 @@ def run_bind(name: Optional[str], force: bool):
         f.write(contents)
 
     if config["settings"]["clear_on_bind"] == "True":
-        with open(main_path, "w") as f:
-            f.write(MAIN_CONTENTS)
+        run_clear()
 
     if config["settings"]["commit_on_bind"] == "True":
         # TODO v0.2.0

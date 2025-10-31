@@ -3,10 +3,11 @@ from typing_extensions import Optional
 import click
 
 from .configuration import create_default_config, run_wizard, build_environment
+from .context import Context
 from .run import run_main
 from .bind import run_bind
 from .load import run_load
-from .context import Context
+from .clear import run_clear
 
 @click.group()
 def cli():
@@ -60,6 +61,11 @@ def bind(name: Optional[str], force: bool):
 def load(year: int, day: int, part: int, name: Optional[str]):
     """Loads saved solution into main.py"""
     run_load(Context(year, day, part), name)
+
+@cli.command()
+def clear():
+    """Sets the main.py contents to the default"""
+    run_clear()
 
 @cli.command()
 def test():
