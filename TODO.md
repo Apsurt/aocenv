@@ -27,3 +27,4 @@ more negative space progreamming, asserts everywhere
 add printing instructions
 maybe some stars matrix to paste into readme idk
 test command to manually add provided test cases
+add docs
