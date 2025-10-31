@@ -1,12 +1,5 @@
 # TODO
 
-## `src/aoc/cache.py`
-- [ ] Implement `read_submit_cache`
-- [ ] Implement `write_submit_cache`
-
-## `src/aoc/submit.py`
-- [ ] Add caching for submissions
-
 # v0.2.0
 
 ## `src/aoc/submit.py`
@@ -27,3 +20,10 @@
 
 ## Tests
 - [ ] Add full test coverage
+
+
+move to returns for error handling
+more negative space progreamming, asserts everywhere
+add printing instructions
+maybe some stars matrix to paste into readme idk
+test command to manually add provided test cases
