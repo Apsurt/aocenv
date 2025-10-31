@@ -21,18 +21,17 @@ classifiers = [
     "Topic :: System :: Filesystems",
     "Typing :: Typed"
 ]
-
-[project.urls]
- Homepage = "https://github.com/Apsurt/aocenv"
- Repository = "https://github.com/Apsurt/aocenv"
- Issues = "https://github.com/Apsurt/aocenv/issues"
-
 dependencies = [
     "beautifulsoup4",
     "click",
     "requests",
     "returns",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Apsurt/aocenv"
+Repository = "https://github.com/Apsurt/aocenv"
+Issues = "https://github.com/Apsurt/aocenv/issues"
 
 [dependency-groups]
 dev = [
