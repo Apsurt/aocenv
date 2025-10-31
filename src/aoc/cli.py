@@ -1,9 +1,12 @@
 import os
 from typing_extensions import Optional
 import click
+
 from .configuration import create_default_config, run_wizard, build_environment
 from .run import run_main
 from .bind import run_bind
+from .load import run_load
+from .context import Context
 
 @click.group()
 def cli():
@@ -54,11 +57,9 @@ def bind(name: Optional[str], force: bool):
 @click.argument("day", required=True)
 @click.argument("part", required=True)
 @click.argument("name", required=False)
-def load(year: int, day: int, part: int, name: str):
+def load(year: int, day: int, part: int, name: Optional[str]):
     """Loads saved solution into main.py"""
-    #TODO
-
-    pass
+    run_load(Context(year, day, part), name)
 
 @cli.command()
 def test():

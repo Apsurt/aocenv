@@ -4,19 +4,17 @@ from pathlib import Path
 from .context import get_context
 from .configuration import get_config
 from .constants import MAIN_CONTENTS
+from .misc import get_solution_filename, get_solution_path
 
 def run_bind(name: Optional[str], force: bool):
     ctx = get_context()
     config = get_config()
 
-    filename = f"{ctx.year}_{ctx.day}_{ctx.part}"
-    if name:
-        filename += "_" + name
-    filename += ".py"
+    filename = get_solution_filename(ctx, name)
 
     base_path = Path(config["variables"]["path"])
     main_path = base_path / "main.py"
-    bind_path = base_path / "solutions" / str(ctx.year) / str(ctx.day)
+    bind_path = get_solution_path(base_path, ctx)
 
     try:
         os.makedirs(bind_path)
