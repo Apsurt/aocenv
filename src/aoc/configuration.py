@@ -3,6 +3,7 @@ import configparser
 import click
 from .constants import MAIN_CONTENTS, GITIGNORE_CONTENTS
 
+
 def create_default_config(path, cookies):
     config = configparser.ConfigParser()
     config["settings"] = {
@@ -10,11 +11,9 @@ def create_default_config(path, cookies):
         "clear_on_bind": "False",
         "commit_on_bind": "False",
     }
-    config["variables"] = {
-        "path": path,
-        "session_cookies": cookies
-    }
+    config["variables"] = {"path": path, "session_cookies": cookies}
     return config
+
 
 def get_config():
     config_path = "config.toml"
@@ -27,11 +26,13 @@ def get_config():
 
     return config
 
+
 def get_session_cookies():
     config = get_config()
     cookies = dict()
     cookies["session"] = config["variables"]["session_cookies"]
     return cookies
+
 
 def build_environment(path):
     files = [".gitignore", "main.py", "config.toml"]
@@ -52,14 +53,30 @@ def build_environment(path):
             else:
                 f.write("")
 
+
 def run_wizard(config):
     config["variables"] = {
         "path": config["variables"]["path"],
-        "session_cookies": click.prompt('Please paste your session cookies. (Instructions in README.md)', type=str),
+        "session_cookies": click.prompt(
+            "Please paste your session cookies. (Instructions in README.md)", type=str
+        ),
     }
     config["settings"] = {
-        "bind_on_correct": str(click.confirm('Do you want the solution to bind when you submit correct solution?', True)),
-        "clear_on_bind": str(click.confirm('Do you want to main.py to be cleared when you bind the soution?')),
-        "commit_on_bind": str(click.confirm('Do you want to commit your solution when you bind the solution?')),
+        "bind_on_correct": str(
+            click.confirm(
+                "Do you want the solution to bind when you submit correct solution?",
+                True,
+            )
+        ),
+        "clear_on_bind": str(
+            click.confirm(
+                "Do you want to main.py to be cleared when you bind the soution?"
+            )
+        ),
+        "commit_on_bind": str(
+            click.confirm(
+                "Do you want to commit your solution when you bind the solution?"
+            )
+        ),
     }
     return config

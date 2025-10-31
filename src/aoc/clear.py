@@ -2,8 +2,8 @@ from .constants import MAIN_CONTENTS
 from .configuration import get_config
 from pathlib import Path
 
-def run_clear():
 
+def run_clear():
     config = get_config()
 
     base_path = Path(config["variables"]["path"])

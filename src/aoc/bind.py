@@ -6,6 +6,7 @@ from .configuration import get_config
 from .clear import run_clear
 from .misc import get_solution_filename, get_solution_path
 
+
 def run_bind(name: Optional[str], force: bool):
     ctx = get_context()
     config = get_config()
@@ -24,7 +25,9 @@ def run_bind(name: Optional[str], force: bool):
     bind_path = bind_path / filename
 
     if os.path.exists(bind_path) and not force:
-        print("You already have file binded under that path, use --force if you want to overwrite it")
+        print(
+            "You already have file binded under that path, use --force if you want to overwrite it"
+        )
         return
 
     with open(main_path, "r") as f:

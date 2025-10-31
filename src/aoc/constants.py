@@ -1,4 +1,3 @@
-
 MAIN_CONTENTS = """import aoc
 
 # Set your Advent of Code context

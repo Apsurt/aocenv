@@ -4,12 +4,14 @@ from click.testing import CliRunner
 from aoc.cli import cli, init, run
 from aoc.constants import MAIN_CONTENTS
 
+
 def test_cli_group():
     """Test the main CLI group."""
     runner = CliRunner()
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
     assert "A CLI tool for aocenv" in result.output
+
 
 def test_init_command(tmp_path):
     runner = CliRunner()
@@ -40,6 +42,7 @@ def test_init_command(tmp_path):
     assert config["variables"]["path"] == str(tmp_path)
     assert config["variables"]["session_cookies"] == ""
 
+
 def test_init_with_relative_path(tmp_path):
     """Test init command with relative path."""
     runner = CliRunner()
@@ -52,6 +55,7 @@ def test_init_with_relative_path(tmp_path):
         # Check that the directory was created and exists
         assert os.path.isdir(relative_path)
 
+
 def test_init_creates_directory_if_not_exists(tmp_path):
     """Test init command creates directory if it doesn't exist."""
     runner = CliRunner()
@@ -60,6 +64,7 @@ def test_init_creates_directory_if_not_exists(tmp_path):
     result = runner.invoke(init, [new_dir, "--default"])
     assert result.exit_code == 0
     assert os.path.isdir(new_dir)
+
 
 def test_init_with_wizard(tmp_path):
     """Test init command with wizard (non-default mode)."""
@@ -73,6 +78,7 @@ def test_init_with_wizard(tmp_path):
     config = configparser.ConfigParser()
     config.read(config_toml_path)
     assert config["variables"]["session_cookies"] == "test_session"
+
 
 def test_run_command():
     """Test the run command."""

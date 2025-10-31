@@ -4,6 +4,7 @@ from typing import Dict, Optional
 from .context import Context
 import json
 
+
 def _get_session_hash(cookies: Dict[str, str]) -> str:
     session = cookies.get("session", "")
     return hashlib.sha256(session.encode()).hexdigest()[:8]
@@ -27,12 +28,16 @@ def write_input_cache(ctx: Context, cookies: Dict[str, str], content: str) -> No
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     cache_path.write_text(content)
 
+
 def get_submit_cache_path(ctx: Context, cookies: Dict[str, str]) -> Path:
     session_hash = _get_session_hash(cookies)
     cache_dir = Path(".aoc") / "cache" / session_hash / str(ctx.year) / "submits"
     return cache_dir / f"day{ctx.day}part{ctx.part}.json"
 
-def read_submit_cache(ctx: Context, cookies: Dict[str, str], answer: str) -> Optional[str]:
+
+def read_submit_cache(
+    ctx: Context, cookies: Dict[str, str], answer: str
+) -> Optional[str]:
     cache_path = get_submit_cache_path(ctx, cookies)
     if not cache_path.exists():
         return None
@@ -41,7 +46,10 @@ def read_submit_cache(ctx: Context, cookies: Dict[str, str], answer: str) -> Opt
         return None
     return cache[answer]
 
-def write_submit_cache(ctx: Context, cookies: Dict[str, str], answer: str, result: str) -> None:
+
+def write_submit_cache(
+    ctx: Context, cookies: Dict[str, str], answer: str, result: str
+) -> None:
     cache_path = get_submit_cache_path(ctx, cookies)
     if not cache_path.exists():
         cache_path.parent.mkdir(parents=True, exist_ok=True)

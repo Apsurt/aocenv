@@ -9,10 +9,12 @@ from .bind import run_bind
 from .load import run_load
 from .clear import run_clear
 
+
 @click.group()
 def cli():
     """A CLI tool for aocenv."""
     pass
+
 
 @cli.command()
 @click.argument("path", required=True)
@@ -40,11 +42,13 @@ def init(path: str, session_cookies: Optional[str], default: bool):
     with open(config_path, "w") as configfile:
         config.write(configfile)
 
+
 @cli.command()
 def run():
     """Runs the main.py file"""
-    #TODO Add timing flag
+    # TODO Add timing flag
     run_main()
+
 
 @cli.command()
 @click.argument("name", required=False)
@@ -52,6 +56,7 @@ def run():
 def bind(name: Optional[str], force: bool):
     """Binds the contents of main.py"""
     run_bind(name, force)
+
 
 @cli.command()
 @click.argument("year", required=True)
@@ -62,10 +67,12 @@ def load(year: int, day: int, part: int, name: Optional[str]):
     """Loads saved solution into main.py"""
     run_load(Context(year, day, part), name)
 
+
 @cli.command()
 def clear():
     """Sets the main.py contents to the default"""
     run_clear()
+
 
 # @cli.command()
 # def test():

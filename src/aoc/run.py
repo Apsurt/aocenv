@@ -5,12 +5,12 @@ import os
 reg = {
     "uv": ["uv", "run", "main.py"],
     "python": ["python", "main.py"],
-    "python3": ["python3", "main.py"]
+    "python3": ["python3", "main.py"],
 }
 
-def run_main():
 
-    #TODO add timing of execution
+def run_main():
+    # TODO add timing of execution
 
     if not os.path.exists("main.py"):
         FileNotFoundError("No main.py found")

@@ -1,4 +1,5 @@
 """Tests for context resolution functionality."""
+
 import tempfile
 import os
 from pathlib import Path
@@ -6,7 +7,7 @@ from aoc.context import (
     Context,
     find_project_root,
     extract_constants_from_main,
-    get_context
+    get_context,
 )
 
 
@@ -62,7 +63,7 @@ PART = 2
 """)
 
         constants = extract_constants_from_main(main_path)
-        assert constants == {'year': 2024, 'day': 15, 'part': 2}
+        assert constants == {"year": 2024, "day": 15, "part": 2}
 
 
 def test_extract_constants_tuple_unpacking():
@@ -74,7 +75,7 @@ YEAR, DAY, PART = 2023, 10, 1
 """)
 
         constants = extract_constants_from_main(main_path)
-        assert constants == {'year': 2023, 'day': 10, 'part': 1}
+        assert constants == {"year": 2023, "day": 10, "part": 1}
 
 
 def test_extract_constants_tuple_with_parens():
@@ -86,7 +87,7 @@ YEAR, DAY, PART = (2022, 25, 2)
 """)
 
         constants = extract_constants_from_main(main_path)
-        assert constants == {'year': 2022, 'day': 25, 'part': 2}
+        assert constants == {"year": 2022, "day": 25, "part": 2}
 
 
 def test_extract_constants_list_unpacking():
@@ -98,7 +99,7 @@ YEAR, DAY, PART = [2021, 12, 1]
 """)
 
         constants = extract_constants_from_main(main_path)
-        assert constants == {'year': 2021, 'day': 12, 'part': 1}
+        assert constants == {"year": 2021, "day": 12, "part": 1}
 
 
 def test_extract_constants_partial():
@@ -111,13 +112,13 @@ DAY = 5
 """)
 
         constants = extract_constants_from_main(main_path)
-        assert constants == {'year': 2024, 'day': 5, 'part': None}
+        assert constants == {"year": 2024, "day": 5, "part": None}
 
 
 def test_extract_constants_missing_file():
     """Test extracting constants when file doesn't exist."""
     constants = extract_constants_from_main(Path("/nonexistent/main.py"))
-    assert constants == {'year': None, 'day': None, 'part': None}
+    assert constants == {"year": None, "day": None, "part": None}
 
 
 def test_extract_constants_invalid_syntax():
@@ -127,7 +128,7 @@ def test_extract_constants_invalid_syntax():
         main_path.write_text("YEAR = 2024\nthis is not valid python")
 
         constants = extract_constants_from_main(main_path)
-        assert constants == {'year': None, 'day': None, 'part': None}
+        assert constants == {"year": None, "day": None, "part": None}
 
 
 def test_get_context_with_project():

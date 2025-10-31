@@ -5,6 +5,7 @@ from .misc import get_solution_filename, get_solution_path
 from .configuration import get_config
 from .context import Context
 
+
 def run_load(ctx: Context, name: Optional[str]):
     config = get_config()
     base_path = Path(config["variables"]["path"])

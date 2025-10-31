@@ -5,10 +5,12 @@ from .configuration import get_session_cookies
 from .cache import read_submit_cache, write_submit_cache
 from bs4 import BeautifulSoup
 
+
 def handle_response(msg: str, response_type: str):
-    #TODO Better printing
+    # TODO Better printing
     print(msg)
     print(response_type)
+
 
 def classify_response(msg: str) -> str:
     if "That's the right answer" in msg:
@@ -21,10 +23,12 @@ def classify_response(msg: str) -> str:
         return "ANSWERED"
     if "You need to actually provide an answer before you hit the button" in msg:
         return "NO_ANSWER"
-    raise RuntimeError("CRITICAL -- Got invalid message from advent of code, please report this bug on: https://github.com/Apsurt/aocenv/issues")
+    raise RuntimeError(
+        "CRITICAL -- Got invalid message from advent of code, please report this bug on: https://github.com/Apsurt/aocenv/issues"
+    )
+
 
 def submit(answer: Any):
-
     answer = str(answer)
 
     cookies = get_session_cookies()
@@ -36,10 +40,7 @@ def submit(answer: Any):
         handle_response(cache, reponse_type)
         return
 
-    payload = {
-        "level": ctx.part,
-        "answer": answer
-    }
+    payload = {"level": ctx.part, "answer": answer}
 
     cookies = get_session_cookies()
     if not cookies or "session" not in cookies:
@@ -55,7 +56,9 @@ def submit(answer: Any):
     if article:
         msg = article.get_text().strip()
     else:
-        raise RuntimeError("Did not find what we were looking for. Are your session cookies up-to-date?")
+        raise RuntimeError(
+            "Did not find what we were looking for. Are your session cookies up-to-date?"
+        )
 
     assert isinstance(msg, str)
 

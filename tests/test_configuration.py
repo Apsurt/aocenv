@@ -1,4 +1,5 @@
 """Tests for configuration module."""
+
 import os
 import tempfile
 import configparser
@@ -8,7 +9,7 @@ from aoc.configuration import (
     get_config,
     get_session_cookies,
     build_environment,
-    run_wizard
+    run_wizard,
 )
 from aoc.constants import MAIN_CONTENTS
 

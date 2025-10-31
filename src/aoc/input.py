@@ -1,12 +1,22 @@
 import re
-from typing import Any, Callable, Generic, TypeVar, List, Tuple, Dict, Iterable, Optional
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    TypeVar,
+    List,
+    Tuple,
+    Dict,
+    Iterable,
+    Optional,
+)
 import requests
 from .context import Context, get_context
 from .configuration import get_session_cookies
 from .cache import read_input_cache, write_input_cache
 
 # Type variable for generic usage
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Grid(Generic[T]):
@@ -20,7 +30,9 @@ class Grid(Generic[T]):
             return self.data[r][c]
         return default
 
-    def neighbors(self, r: int, c: int, diagonals: bool = False) -> Dict[Tuple[int, int], T]:
+    def neighbors(
+        self, r: int, c: int, diagonals: bool = False
+    ) -> Dict[Tuple[int, int], T]:
         neighbors_map = {}
         deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         if diagonals:
@@ -32,7 +44,7 @@ class Grid(Generic[T]):
                 neighbors_map[(nr, nc)] = self.data[nr][nc]
         return neighbors_map
 
-    def transpose(self) -> 'Grid[T]':
+    def transpose(self) -> "Grid[T]":
         transposed_data = [list(row) for row in zip(*self.data)]
         return Grid(transposed_data)
 
@@ -71,74 +83,80 @@ class Input:
             self._value = raw_data
 
     def __len__(self) -> int:
-        if hasattr(self._value, '__len__'):
+        if hasattr(self._value, "__len__"):
             return len(self._value)
         return 1
 
     def __iter__(self) -> Iterable:
-        if hasattr(self._value, '__iter__') and not isinstance(self._value, str):
+        if hasattr(self._value, "__iter__") and not isinstance(self._value, str):
             return iter(self._value)
         return iter([self._value])
 
     def __getitem__(self, key: int | slice) -> Any:
         if isinstance(self._value, list):
             return self._value[key]
-        raise TypeError(f"Current value of type '{type(self._value).__name__}' is not subscriptable.")
+        raise TypeError(
+            f"Current value of type '{type(self._value).__name__}' is not subscriptable."
+        )
 
     # --- Chainable Methods (return self) ---
-    def strip(self) -> 'Input':
+    def strip(self) -> "Input":
         if isinstance(self._value, str):
             self._value = self._value.strip()
         elif isinstance(self._value, list):
             self._value = [s.strip() for s in self._value if isinstance(s, str)]
         return self
 
-    def lines(self) -> 'Input':
+    def lines(self) -> "Input":
         if isinstance(self._value, str):
-            self._value = [line for line in self._value.strip().split('\n') if line]
+            self._value = [line for line in self._value.strip().split("\n") if line]
         return self
 
-    def paragraphs(self) -> 'Input':
+    def paragraphs(self) -> "Input":
         if isinstance(self._value, str):
-            self._value = [p.strip() for p in self._value.strip().split('\n\n') if p]
+            self._value = [p.strip() for p in self._value.strip().split("\n\n") if p]
         return self
 
-    def split(self, sep: Optional[str] = None) -> 'Input':
+    def split(self, sep: Optional[str] = None) -> "Input":
         if isinstance(self._value, str):
             self._value = self._value.split(sep)
         elif isinstance(self._value, list):
             self._value = [item.split(sep) for item in self._value]
         return self
 
-    def map(self, func: Callable) -> 'Input':
+    def map(self, func: Callable) -> "Input":
         if isinstance(self._value, list):
             self._value = [func(item) for item in self._value]
         else:
             self._value = func(self._value)
         return self
 
-    def filter(self, func: Callable) -> 'Input':
+    def filter(self, func: Callable) -> "Input":
         if isinstance(self._value, list):
             self._value = [item for item in self._value if func(item)]
         return self
 
-    def flatten(self) -> 'Input':
-        if isinstance(self._value, list) and self._value and isinstance(self._value[0], list):
+    def flatten(self) -> "Input":
+        if (
+            isinstance(self._value, list)
+            and self._value
+            and isinstance(self._value[0], list)
+        ):
             self._value = [item for sublist in self._value for item in sublist]
         return self
 
-    def findall(self, pattern: str) -> 'Input':
+    def findall(self, pattern: str) -> "Input":
         if isinstance(self._value, str):
             self._value = re.findall(pattern, self._value)
         elif isinstance(self._value, list):
             self._value = [re.findall(pattern, item) for item in self._value]
         return self
 
-    def to_int(self) -> 'Input':
+    def to_int(self) -> "Input":
         self._value = _recursive_apply(int, self._value)
         return self
 
-    def to_float(self) -> 'Input':
+    def to_float(self) -> "Input":
         self._value = _recursive_apply(float, self._value)
         return self
 
@@ -149,14 +167,24 @@ class Input:
     def grid(self) -> Grid:
         grid_data = []
         if isinstance(self._value, str):
-            lines = self._value.strip().split('\n')
+            lines = self._value.strip().split("\n")
             grid_data = [list(line) for line in lines]
-        elif isinstance(self._value, list) and self._value and isinstance(self._value[0], str):
+        elif (
+            isinstance(self._value, list)
+            and self._value
+            and isinstance(self._value[0], str)
+        ):
             grid_data = [list(line) for line in self._value]
-        elif isinstance(self._value, list) and self._value and isinstance(self._value[0], list):
+        elif (
+            isinstance(self._value, list)
+            and self._value
+            and isinstance(self._value[0], list)
+        ):
             grid_data = self._value
         else:
-            raise TypeError(f"Cannot convert type '{type(self._value).__name__}' to a Grid.")
+            raise TypeError(
+                f"Cannot convert type '{type(self._value).__name__}' to a Grid."
+            )
         return Grid(grid_data)
 
 
