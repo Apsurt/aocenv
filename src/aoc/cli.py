@@ -69,7 +69,7 @@ def clear():
 
 @cli.command()
 def test():
-    """TBA"""
+    """"""
     #TODO in v0.2.0
     pass
 

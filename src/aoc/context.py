@@ -12,16 +12,6 @@ class Context:
 
 
 def find_project_root(start_path: Optional[str] = None) -> Optional[Path]:
-    """
-    Searches upward from start_path to find the project root directory.
-    The project root is identified by the presence of both main.py and config.toml.
-
-    Args:
-        start_path: Starting directory for the search. Defaults to current working directory.
-
-    Returns:
-        Path to the project root, or None if not found.
-    """
     if start_path is None:
         start_path = os.getcwd()
 
@@ -41,15 +31,6 @@ def find_project_root(start_path: Optional[str] = None) -> Optional[Path]:
 
 
 def extract_constants_from_main(main_path: Path) -> dict[str, int | None]:
-    """
-    Uses AST to extract YEAR, DAY, and PART constants from main.py.
-
-    Args:
-        main_path: Path to the main.py file.
-
-    Returns:
-        Dictionary with keys 'year', 'day', 'part' (values are None if not found).
-    """
     constants: dict[str, int | None] = {'year': None, 'day': None, 'part': None}
 
     try:
@@ -94,13 +75,6 @@ def extract_constants_from_main(main_path: Path) -> dict[str, int | None]:
 
 
 def get_context() -> Context:
-    """
-    Retrieves the context (year, day, part) by parsing the main.py file.
-    Falls back to default values if constants cannot be found.
-
-    Returns:
-        Context object with year, day, and part.
-    """
     # Find project root
     project_root = find_project_root()
 
