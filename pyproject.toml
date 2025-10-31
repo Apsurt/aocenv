@@ -35,6 +35,7 @@ dev = [
     "mypy",
     "ruff",
     "pytest-cov",
+    "types-requests",
 ]
 
 [project.scripts]
