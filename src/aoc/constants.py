@@ -5,15 +5,16 @@ MAIN_CONTENTS = """import aoc
 YEAR, DAY, PART = (2024, 1, 1)
 
 def solve():
-    input = Input()
-
+    # Solve the puzzle here
+    input = aoc.Input()
     answer = None
-
     return answer
 
 def main():
     answer = solve()
     print(answer)
+    # Uncomment line below when you're ready to submit
+    # aoc.submit(answer)
 
 if __name__ == "__main__":
     main()
