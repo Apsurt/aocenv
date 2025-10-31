@@ -5,10 +5,12 @@
 - [ ] Implement `write_submit_cache`
 
 ## `src/aoc/submit.py`
-- [ ] Implement response handling
 - [ ] Add caching for submissions
 
 # v0.2.0
+
+## `src/aoc/submit.py`
+- [ ] Implement better response handling
 
 ## `src/aoc/bind.py`
 - [ ] Implement commit_on_bind feature
