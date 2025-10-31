@@ -13,7 +13,7 @@ def cli():
 @click.argument("session_cookies", required=False)
 @click.option("--default", is_flag=True)
 def init(path: str, session_cookies: str, default: bool):
-    """Runs configuration the wizard."""
+    """Runs configuration the wizard"""
 
     if not os.path.isabs(path):
         path = os.path.abspath(path)
@@ -37,11 +37,27 @@ def init(path: str, session_cookies: str, default: bool):
 @cli.command()
 def run():
     """Runs the main.py file"""
-
     run_main()
 
 @cli.command()
+@click.argument("name", required=False)
+def bind(name: str):
+    """Binds the contents of main.py"""
+    pass
+
+@cli.command()
+@click.argument("year", required=True)
+@click.argument("day", required=True)
+@click.argument("part", required=True)
+@click.argument("name", required=False)
+def load(year: int, day: int, part: int, name: str):
+    """Loads saved solution into main.py"""
+    pass
+
+@cli.command()
 def test():
+    """TBA"""
+    #TODO v0.1.0
     pass
 
 if __name__ == "__main__":

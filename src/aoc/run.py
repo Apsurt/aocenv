@@ -9,6 +9,9 @@ reg = {
 }
 
 def run_main():
+
+    #TODO add timing of execution
+
     if not os.path.exists("main.py"):
         RuntimeError("")
 
