@@ -3,6 +3,7 @@ from typing_extensions import Optional
 import click
 from .configuration import create_default_config, run_wizard, build_environment
 from .run import run_main
+from .bind import run_bind
 
 @click.group()
 def cli():
@@ -39,16 +40,14 @@ def init(path: str, session_cookies: Optional[str], default: bool):
 def run():
     """Runs the main.py file"""
     #TODO Add timing flag
-
     run_main()
 
 @cli.command()
 @click.argument("name", required=False)
-def bind(name: str):
+@click.option("--force", is_flag=True, required=False, default=False)
+def bind(name: Optional[str], force: bool):
     """Binds the contents of main.py"""
-    #TODO
-
-    pass
+    run_bind(name, force)
 
 @cli.command()
 @click.argument("year", required=True)

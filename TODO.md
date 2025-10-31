@@ -16,7 +16,6 @@
 
 ## `src/aoc/cli.py`
 - [ ] **Add timing flag to `run` command:** Add a `--time` or similar flag to the `run` command to enable/disable the execution timing feature.
-- [ ] **Implement `bind` command:** Implement the `bind` command, which is intended to "bind the contents of main.py". The specific functionality needs to be defined.
 - [ ] **Implement `load` command:** Implement the `load` command to load a saved solution into `main.py`.
 - [ ] **Implement `test` command:** Implement the `test` command. The purpose is "TBA" and is slated for v0.2.0.
 
