@@ -415,7 +415,7 @@ def test_write_and_read_input_cache():
 
 def test_read_input_cache_not_exists():
     # Arrange
-    ctx = Context(year=2099, day=99, part=1)
+    ctx = Context(year=2029, day=25, part=1)
     cookies = {"session": "test_token"}
 
     with tempfile.TemporaryDirectory() as tmpdir:
