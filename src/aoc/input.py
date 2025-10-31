@@ -1,6 +1,5 @@
 import re
-from typing import Any, Callable, Generic, TypeVar, List, Tuple, Dict, Iterable
-from typing_extensions import Optional
+from typing import Any, Callable, Generic, TypeVar, List, Tuple, Dict, Iterable, Optional
 import requests
 from .context import Context, get_context
 from .configuration import get_session_cookies

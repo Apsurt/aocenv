@@ -1,5 +1,5 @@
 import os
-from typing_extensions import Optional
+from typing import Optional
 import click
 
 from .configuration import create_default_config, run_wizard, build_environment
