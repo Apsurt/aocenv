@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.0 (2d7677d)
+## v0.1.0
 
 ### Core Functionality
 - Implemented `init`, `run`, `submit`, `clear`, and `bind` commands.
