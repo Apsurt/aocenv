@@ -2,7 +2,13 @@ import os
 from typing import Optional
 import click
 
-from .configuration import create_default_config, run_wizard, build_environment
+from .configuration import (
+    create_default_config,
+    run_wizard,
+    build_environment,
+    get_config,
+    write_config,
+)
 from .context import Context
 from .run import run_main
 from .bind import run_bind
@@ -14,6 +20,37 @@ from .clear import run_clear
 def cli():
     """A CLI tool for aocenv."""
     pass
+
+
+@cli.command()
+@click.option("--year", type=int)
+@click.option("--day", type=int)
+@click.option("--part", type=int)
+def context(year: Optional[int], day: Optional[int], part: Optional[int]):
+    """Sets or displays the default context."""
+    config = get_config()
+
+    if year is None and day is None and part is None:
+        # Display current default context
+        default_year = config.get("variables", "default_year", fallback="2025")
+        default_day = config.get("variables", "default_day", fallback="1")
+        default_part = config.get("variables", "default_part", fallback="1")
+        print(f"Default context: year={default_year}, day={default_day}, part={default_part}")
+        return
+
+    if year is not None:
+        config.set("variables", "default_year", str(year))
+    if day is not None:
+        config.set("variables", "default_day", str(day))
+    if part is not None:
+        config.set("variables", "default_part", str(part))
+
+    write_config(config)
+
+    default_year = config.get("variables", "default_year")
+    default_day = config.get("variables", "default_day")
+    default_part = config.get("variables", "default_part")
+    print(f"Default context set to: year={default_year}, day={default_day}, part={default_part}")
 
 
 @cli.command()
@@ -37,7 +74,7 @@ def init(path: str, session_cookies: Optional[str], default: bool):
     if not default:
         config = run_wizard(config)
 
-    build_environment(path)
+    build_environment(path, config)
     config_path = os.path.join(path, "config.toml")
     with open(config_path, "w") as configfile:
         config.write(configfile)

@@ -3,6 +3,7 @@
 import tempfile
 import os
 from pathlib import Path
+import configparser
 from aoc.context import (
     Context,
     find_project_root,
@@ -145,7 +146,14 @@ def solve():
     pass
 """)
         # Create config.toml
-        Path(tmpdir, "config.toml").touch()
+        config = configparser.ConfigParser()
+        config["variables"] = {
+            "default_year": "2025",
+            "default_day": "1",
+            "default_part": "1",
+        }
+        with open(Path(tmpdir, "config.toml"), "w") as f:
+            config.write(f)
 
         # Change to the temp directory
         old_cwd = os.getcwd()
@@ -166,12 +174,11 @@ def test_get_context_fallback():
         try:
             os.chdir(tmpdir)
             ctx = get_context()
-            assert ctx.year == 2024
+            assert ctx.year == 2025
             assert ctx.day == 1
             assert ctx.part == 1
         finally:
             os.chdir(old_cwd)
-
 
 def test_get_context_partial_constants():
     """Test get_context with partial constants uses defaults for missing values."""
@@ -182,15 +189,50 @@ def test_get_context_partial_constants():
 YEAR = 2023
 DAY = 10
 """)
-        # Create config.toml
-        Path(tmpdir, "config.toml").touch()
+        # Create config.toml with different defaults
+        config = configparser.ConfigParser()
+        config["variables"] = {
+            "default_year": "2000",
+            "default_day": "20",
+            "default_part": "2",
+        }
+        with open(Path(tmpdir, "config.toml"), "w") as f:
+            config.write(f)
 
         old_cwd = os.getcwd()
         try:
             os.chdir(tmpdir)
             ctx = get_context()
-            assert ctx.year == 2023
-            assert ctx.day == 10
-            assert ctx.part == 1  # Default
+            assert ctx.year == 2023  # From main.py
+            assert ctx.day == 10  # From main.py
+            assert ctx.part == 2  # Fallback to config
+        finally:
+            os.chdir(old_cwd)
+
+
+def test_get_context_fallback_to_config():
+    """Test get_context falls back to config when no context in main.py."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create main.py with no context
+        main_path = Path(tmpdir, "main.py")
+        main_path.write_text("def solve(): pass")
+
+        # Create config.toml with custom defaults
+        config = configparser.ConfigParser()
+        config["variables"] = {
+            "default_year": "2021",
+            "default_day": "22",
+            "default_part": "1",
+        }
+        with open(Path(tmpdir, "config.toml"), "w") as f:
+            config.write(f)
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
+            ctx = get_context()
+            assert ctx.year == 2021
+            assert ctx.day == 22
+            assert ctx.part == 1
         finally:
             os.chdir(old_cwd)

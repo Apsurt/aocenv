@@ -3,7 +3,7 @@ import ast
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-
+from .configuration import get_config
 
 @dataclass
 class Context:
@@ -93,21 +93,35 @@ def extract_constants_from_main(main_path: Path) -> dict[str, int | None]:
     return constants
 
 
+
 def get_context() -> Context:
     # Find project root
     project_root = find_project_root()
 
     if project_root is None:
         # Fallback to defaults if project root not found
-        return Context(2024, 1, 1)
+        return Context(2025, 1, 1)
 
     # Extract constants from main.py
     main_path = project_root / "main.py"
     constants = extract_constants_from_main(main_path)
 
+    config = get_config()
     # Use extracted values or fall back to defaults
-    year = constants["year"] if constants["year"] is not None else 2024
-    day = constants["day"] if constants["day"] is not None else 1
-    part = constants["part"] if constants["part"] is not None else 1
+    year = (
+        constants["year"]
+        if constants["year"] is not None
+        else config.getint("variables", "default_year")
+    )
+    day = (
+        constants["day"]
+        if constants["day"] is not None
+        else config.getint("variables", "default_day")
+    )
+    part = (
+        constants["part"]
+        if constants["part"] is not None
+        else config.getint("variables", "default_part")
+    )
 
     return Context(year, day, part)

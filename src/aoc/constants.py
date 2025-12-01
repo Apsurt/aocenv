@@ -1,7 +1,7 @@
 MAIN_CONTENTS = """import aoc
 
 # Set your Advent of Code context
-YEAR, DAY, PART = (2024, 1, 1)
+YEAR, DAY, PART = ({year}, {day}, {part})
 
 def solve():
     # Solve the puzzle here

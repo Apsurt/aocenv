@@ -1,8 +1,8 @@
 import os
 import configparser
 from click.testing import CliRunner
-from aoc.cli import cli, init, run
-from aoc.constants import MAIN_CONTENTS
+from aoc.cli import cli, init, run, context
+
 
 
 def test_cli_group():
@@ -11,6 +11,62 @@ def test_cli_group():
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
     assert "A CLI tool for aocenv" in result.output
+
+
+def test_context_command_display(tmp_path):
+    """Test context command displays default context."""
+    runner = CliRunner()
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        # Initialize a project
+        runner.invoke(init, [".", "--default"])
+
+        result = runner.invoke(context)
+        assert result.exit_code == 0
+        assert "Default context: year=2025, day=1, part=1" in result.output
+
+
+def test_context_command_set_all(tmp_path):
+    """Test context command sets all context values."""
+    runner = CliRunner()
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        runner.invoke(init, [".", "--default"])
+
+        result = runner.invoke(context, ["--year", "2025", "--day", "10", "--part", "2"])
+        assert result.exit_code == 0
+        assert "Default context set to: year=2025, day=10, part=2" in result.output
+
+        # Verify change in config
+        config = configparser.ConfigParser()
+        config.read("config.toml")
+        assert config.get("variables", "default_year") == "2025"
+        assert config.get("variables", "default_day") == "10"
+        assert config.get("variables", "default_part") == "2"
+
+
+def test_context_command_set_partial(tmp_path):
+    """Test context command sets partial context values."""
+    runner = CliRunner()
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        runner.invoke(init, [".", "--default"])
+
+        # Set only year
+        result = runner.invoke(context, ["--year", "2026"])
+        assert result.exit_code == 0
+        assert "Default context set to: year=2026, day=1, part=1" in result.output
+
+        # Set day and part
+        result = runner.invoke(context, ["--day", "15", "--part", "1"])
+        assert result.exit_code == 0
+        assert "Default context set to: year=2026, day=15, part=1" in result.output
+
+        # Verify change in config
+        config = configparser.ConfigParser()
+        config.read("config.toml")
+        assert config.get("variables", "default_year") == "2026"
+        assert config.get("variables", "default_day") == "15"
+        assert config.get("variables", "default_part") == "1"
+
+
 
 
 def test_init_command(tmp_path):
@@ -31,7 +87,8 @@ def test_init_command(tmp_path):
 
     # Check the contents of main.py
     with open(main_py_path, "r") as f:
-        assert f.read() == MAIN_CONTENTS
+        content = f.read()
+        assert "YEAR, DAY, PART = (2025, 1, 1)" in content
 
     # Check the contents of config.toml
     config = configparser.ConfigParser()
@@ -70,7 +127,9 @@ def test_init_with_wizard(tmp_path):
     """Test init command with wizard (non-default mode)."""
     runner = CliRunner()
     # Simulate user input for the wizard
-    result = runner.invoke(init, [str(tmp_path)], input="test_session\ny\nn\ny\n")
+    result = runner.invoke(
+        init, [str(tmp_path)], input="test_session\n2025\n1\n1\ny\nn\ny\n"
+    )
     assert result.exit_code == 0
 
     # Check that config was created with wizard inputs
@@ -78,6 +137,9 @@ def test_init_with_wizard(tmp_path):
     config = configparser.ConfigParser()
     config.read(config_toml_path)
     assert config["variables"]["session_cookies"] == "test_session"
+    assert config.get("variables", "default_year") == "2025"
+    assert config.get("variables", "default_day") == "1"
+    assert config.get("variables", "default_part") == "1"
 
 
 def test_run_command():

@@ -11,7 +11,13 @@ def create_default_config(path, cookies):
         "clear_on_bind": "False",
         "commit_on_bind": "False",
     }
-    config["variables"] = {"path": path, "session_cookies": cookies}
+    config["variables"] = {
+        "path": path,
+        "session_cookies": cookies,
+        "default_year": "2025",
+        "default_day": "1",
+        "default_part": "1",
+    }
     return config
 
 
@@ -27,6 +33,13 @@ def get_config():
     return config
 
 
+def write_config(config: configparser.ConfigParser):
+    config_path = "config.toml"
+    with open(config_path, "w") as f:
+        config.write(f)
+
+
+
 def get_session_cookies():
     config = get_config()
     cookies = dict()
@@ -34,7 +47,7 @@ def get_session_cookies():
     return cookies
 
 
-def build_environment(path):
+def build_environment(path, config):
     files = [".gitignore", "main.py", "config.toml"]
     directories = [".aoc", ".aoc/cache", "solutions"]
 
@@ -47,7 +60,13 @@ def build_environment(path):
         p = os.path.join(path, file)
         with open(p, "w") as f:
             if "main.py" in p:
-                f.write(MAIN_CONTENTS)
+                f.write(
+                    MAIN_CONTENTS.format(
+                        year=config.get("variables", "default_year"),
+                        day=config.get("variables", "default_day"),
+                        part=config.get("variables", "default_part"),
+                    )
+                )
             elif ".gitignore" in p:
                 f.write(GITIGNORE_CONTENTS)
             else:
@@ -60,6 +79,9 @@ def run_wizard(config):
         "session_cookies": click.prompt(
             "Please paste your session cookies. (Instructions in README.md)", type=str
         ),
+        "default_year": click.prompt("Default year", type=int),
+        "default_day": click.prompt("Default day", type=int),
+        "default_part": click.prompt("Default part", type=int),
     }
     config["settings"] = {
         "bind_on_correct": str(
