@@ -14,7 +14,6 @@ from aoc.configuration import (
 )
 
 
-
 def test_create_default_config():
     """Test creating default configuration."""
     config = create_default_config("/test/path", "test_cookie")
@@ -45,7 +44,6 @@ def test_write_config():
             assert read_config.get("variables", "default_year") == "2025"
         finally:
             os.chdir(old_cwd)
-
 
 
 def test_get_config():

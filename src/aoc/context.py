@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 from .configuration import get_config
 
+
 @dataclass
 class Context:
     year: int
@@ -91,7 +92,6 @@ def extract_constants_from_main(main_path: Path) -> dict[str, int | None]:
         pass
 
     return constants
-
 
 
 def get_context() -> Context:

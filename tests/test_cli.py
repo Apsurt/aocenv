@@ -4,7 +4,6 @@ from click.testing import CliRunner
 from aoc.cli import cli, init, run, context
 
 
-
 def test_cli_group():
     """Test the main CLI group."""
     runner = CliRunner()
@@ -31,7 +30,9 @@ def test_context_command_set_all(tmp_path):
     with runner.isolated_filesystem(temp_dir=tmp_path):
         runner.invoke(init, [".", "--default"])
 
-        result = runner.invoke(context, ["--year", "2025", "--day", "10", "--part", "2"])
+        result = runner.invoke(
+            context, ["--year", "2025", "--day", "10", "--part", "2"]
+        )
         assert result.exit_code == 0
         assert "Default context set to: year=2025, day=10, part=2" in result.output
 
@@ -65,8 +66,6 @@ def test_context_command_set_partial(tmp_path):
         assert config.get("variables", "default_year") == "2026"
         assert config.get("variables", "default_day") == "15"
         assert config.get("variables", "default_part") == "1"
-
-
 
 
 def test_init_command(tmp_path):

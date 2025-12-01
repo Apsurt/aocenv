@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import patch, Mock
 import os
-import tempfile
 import configparser
 from pathlib import Path
 import subprocess
@@ -16,21 +15,42 @@ def mock_project_root_with_git(tmp_path):
     """Fixture to set up a temporary project environment with a Git repo."""
     (tmp_path / "main.py").write_text("print('Solution')")
     (tmp_path / "config.toml").touch()
-    
+
     config = create_default_config(str(tmp_path), "test_session_id")
-    config["settings"]["commit_on_bind"] = "True" # Default to True for tests that expect commit
+    config["settings"]["commit_on_bind"] = (
+        "True"  # Default to True for tests that expect commit
+    )
     write_config(config)
 
     old_cwd = os.getcwd()
     os.chdir(tmp_path)
-    
+
     # Initialize Git repository
-    subprocess.run(["git", "init", "-b", "main"], capture_output=True, text=True, check=True)
-    subprocess.run(["git", "config", "user.email", "test@example.com"], capture_output=True, text=True, check=True)
-    subprocess.run(["git", "config", "user.name", "Test User"], capture_output=True, text=True, check=True)
-    subprocess.run(["git", "add", "main.py"], capture_output=True, text=True, check=True)
-    subprocess.run(["git", "commit", "-m", "Initial commit"], capture_output=True, text=True, check=True)
-    
+    subprocess.run(
+        ["git", "init", "-b", "main"], capture_output=True, text=True, check=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "add", "main.py"], capture_output=True, text=True, check=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
     yield tmp_path
     os.chdir(old_cwd)
 
@@ -40,8 +60,11 @@ def mock_project_root_with_git(tmp_path):
 @patch("aoc.bind.get_config")
 @patch("aoc.configuration.write_config")
 def test_run_bind_commit_on_bind_disabled(
-    mock_write_config, mock_get_config, mock_get_context, mock_subprocess_run,
-    mock_project_root_with_git
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_subprocess_run,
+    mock_project_root_with_git,
 ):
     """Test run_bind does not commit when commit_on_bind is disabled."""
     # Arrange
@@ -64,7 +87,7 @@ def test_run_bind_commit_on_bind_disabled(
 
     # Assert
     mock_subprocess_run.assert_not_called()
-    mock_write_config.assert_not_called() # config is not written by run_bind
+    mock_write_config.assert_not_called()  # config is not written by run_bind
 
 
 @patch("subprocess.run")
@@ -72,8 +95,11 @@ def test_run_bind_commit_on_bind_disabled(
 @patch("aoc.bind.get_config")
 @patch("aoc.configuration.write_config")
 def test_run_bind_commit_on_bind_enabled_success(
-    mock_write_config, mock_get_config, mock_get_context, mock_subprocess_run,
-    mock_project_root_with_git
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_subprocess_run,
+    mock_project_root_with_git,
 ):
     """Test run_bind commits when commit_on_bind is enabled."""
     # Arrange
@@ -90,7 +116,7 @@ def test_run_bind_commit_on_bind_enabled_success(
         "default_part": "1",
     }
     mock_get_config.return_value = mock_config
-    
+
     # Mock subprocess.run for git commands
     mock_add_result = Mock()
     mock_add_result.returncode = 0
@@ -100,7 +126,7 @@ def test_run_bind_commit_on_bind_enabled_success(
     # Configure side_effect for multiple calls
     mock_subprocess_run.side_effect = [
         mock_add_result,  # for git add
-        mock_commit_result, # for git commit
+        mock_commit_result,  # for git commit
     ]
 
     # Act
@@ -108,14 +134,18 @@ def test_run_bind_commit_on_bind_enabled_success(
 
     # Assert
     # Assert git add was called
-    bind_path = Path(mock_project_root_with_git) / "solutions" / "2025" / "1" / "2025_1_1.py"
+    bind_path = (
+        Path(mock_project_root_with_git) / "solutions" / "2025" / "1" / "2025_1_1.py"
+    )
     mock_subprocess_run.assert_any_call(
         ["git", "add", str(bind_path)], capture_output=True, text=True, check=False
     )
     # Assert git commit was called
     mock_subprocess_run.assert_any_call(
         ["git", "commit", "-m", "feat: Solve 2025 Day 1 Part 1"],
-        capture_output=True, text=True, check=False
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert mock_subprocess_run.call_count == 2
     mock_write_config.assert_not_called()

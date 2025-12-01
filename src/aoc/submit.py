@@ -102,7 +102,7 @@ def submit(answer: Any):
                 else:
                     new_day = current_day + 1
                     new_part = 1
-            
+
             # Update config
             config.set("variables", "default_year", str(new_year))
             config.set("variables", "default_day", str(new_day))

@@ -35,7 +35,9 @@ def context(year: Optional[int], day: Optional[int], part: Optional[int]):
         default_year = config.get("variables", "default_year", fallback="2025")
         default_day = config.get("variables", "default_day", fallback="1")
         default_part = config.get("variables", "default_part", fallback="1")
-        print(f"Default context: year={default_year}, day={default_day}, part={default_part}")
+        print(
+            f"Default context: year={default_year}, day={default_day}, part={default_part}"
+        )
         return
 
     if year is not None:
@@ -50,7 +52,9 @@ def context(year: Optional[int], day: Optional[int], part: Optional[int]):
     default_year = config.get("variables", "default_year")
     default_day = config.get("variables", "default_day")
     default_part = config.get("variables", "default_part")
-    print(f"Default context set to: year={default_year}, day={default_day}, part={default_part}")
+    print(
+        f"Default context set to: year={default_year}, day={default_day}, part={default_part}"
+    )
 
 
 @cli.command()

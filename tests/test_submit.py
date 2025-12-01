@@ -32,7 +32,11 @@ def mock_project_root(tmp_path):
 def test_submit_correct_no_autobump(
     mock_get_session_cookies,
     mock_run_bind,
-    mock_write_config, mock_get_config, mock_get_context, mock_post, mock_project_root
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_post,
+    mock_project_root,
 ):
     """Test correct submission when auto_bump is disabled."""
     # Arrange
@@ -41,7 +45,10 @@ def test_submit_correct_no_autobump(
     mock_get_session_cookies.return_value = {"session": "mock_session_id"}
 
     mock_config = configparser.ConfigParser()
-    mock_config["settings"] = {"auto_bump_on_correct": "False", "bind_on_correct": "False"}
+    mock_config["settings"] = {
+        "auto_bump_on_correct": "False",
+        "bind_on_correct": "False",
+    }
     mock_config["variables"] = {
         "session_cookies": "mock_session_id",
         "default_year": "2025",
@@ -74,7 +81,11 @@ def test_submit_correct_no_autobump(
 def test_submit_correct_with_bind_on_correct(
     mock_get_session_cookies,
     mock_run_bind,
-    mock_write_config, mock_get_config, mock_get_context, mock_post, mock_project_root
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_post,
+    mock_project_root,
 ):
     """Test correct submission with bind_on_correct enabled."""
     # Arrange
@@ -83,7 +94,10 @@ def test_submit_correct_with_bind_on_correct(
     mock_get_session_cookies.return_value = {"session": "mock_session_id"}
 
     mock_config = configparser.ConfigParser()
-    mock_config["settings"] = {"auto_bump_on_correct": "False", "bind_on_correct": "True"}
+    mock_config["settings"] = {
+        "auto_bump_on_correct": "False",
+        "bind_on_correct": "True",
+    }
     mock_config["variables"] = {
         "session_cookies": "mock_session_id",
         "default_year": "2025",
@@ -116,7 +130,11 @@ def test_submit_correct_with_bind_on_correct(
 def test_submit_correct_autobump_part1_to_part2(
     mock_get_session_cookies,
     mock_run_bind,
-    mock_write_config, mock_get_config, mock_get_context, mock_post, mock_project_root
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_post,
+    mock_project_root,
 ):
     """Test auto_bump from Part 1 to Part 2."""
     # Arrange
@@ -125,7 +143,10 @@ def test_submit_correct_autobump_part1_to_part2(
     mock_get_session_cookies.return_value = {"session": "mock_session_id"}
 
     mock_config = configparser.ConfigParser()
-    mock_config["settings"] = {"auto_bump_on_correct": "True", "bind_on_correct": "False"}
+    mock_config["settings"] = {
+        "auto_bump_on_correct": "True",
+        "bind_on_correct": "False",
+    }
     mock_config["variables"] = {
         "session_cookies": "mock_session_id",
         "default_year": "2025",
@@ -163,7 +184,11 @@ def test_submit_correct_autobump_part1_to_part2(
 def test_submit_correct_autobump_part2_to_next_day(
     mock_get_session_cookies,
     mock_run_bind,
-    mock_write_config, mock_get_config, mock_get_context, mock_post, mock_project_root
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_post,
+    mock_project_root,
 ):
     """Test auto_bump from Part 2 to next day (Part 1)."""
     # Arrange
@@ -172,7 +197,10 @@ def test_submit_correct_autobump_part2_to_next_day(
     mock_get_session_cookies.return_value = {"session": "mock_session_id"}
 
     mock_config = configparser.ConfigParser()
-    mock_config["settings"] = {"auto_bump_on_correct": "True", "bind_on_correct": "False"}
+    mock_config["settings"] = {
+        "auto_bump_on_correct": "True",
+        "bind_on_correct": "False",
+    }
     mock_config["variables"] = {
         "session_cookies": "mock_session_id",
         "default_year": "2025",
@@ -210,7 +238,11 @@ def test_submit_correct_autobump_part2_to_next_day(
 def test_submit_correct_autobump_day25_part2_to_next_year(
     mock_get_session_cookies,
     mock_run_bind,
-    mock_write_config, mock_get_config, mock_get_context, mock_post, mock_project_root
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_post,
+    mock_project_root,
 ):
     """Test auto_bump from Day 25, Part 2 to next year (Day 1, Part 1)."""
     # Arrange
@@ -219,7 +251,10 @@ def test_submit_correct_autobump_day25_part2_to_next_year(
     mock_get_session_cookies.return_value = {"session": "mock_session_id"}
 
     mock_config = configparser.ConfigParser()
-    mock_config["settings"] = {"auto_bump_on_correct": "True", "bind_on_correct": "False"}
+    mock_config["settings"] = {
+        "auto_bump_on_correct": "True",
+        "bind_on_correct": "False",
+    }
     mock_config["variables"] = {
         "session_cookies": "mock_session_id",
         "default_year": "2025",
@@ -257,7 +292,11 @@ def test_submit_correct_autobump_day25_part2_to_next_year(
 def test_submit_wrong_autobump_not_triggered(
     mock_get_session_cookies,
     mock_run_bind,
-    mock_write_config, mock_get_config, mock_get_context, mock_post, mock_project_root
+    mock_write_config,
+    mock_get_config,
+    mock_get_context,
+    mock_post,
+    mock_project_root,
 ):
     """Test auto_bump is not triggered on wrong submission."""
     # Arrange
@@ -266,7 +305,10 @@ def test_submit_wrong_autobump_not_triggered(
     mock_get_session_cookies.return_value = {"session": "mock_session_id"}
 
     mock_config = configparser.ConfigParser()
-    mock_config["settings"] = {"auto_bump_on_correct": "True", "bind_on_correct": "True"}
+    mock_config["settings"] = {
+        "auto_bump_on_correct": "True",
+        "bind_on_correct": "True",
+    }
     mock_config["variables"] = {
         "session_cookies": "mock_session_id",
         "default_year": "2025",

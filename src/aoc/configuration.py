@@ -22,7 +22,6 @@ def create_default_config(path, cookies):
     return config
 
 
-
 def get_config():
     config_path = "config.toml"
 
@@ -39,7 +38,6 @@ def write_config(config: configparser.ConfigParser):
     config_path = "config.toml"
     with open(config_path, "w") as f:
         config.write(f)
-
 
 
 def get_session_cookies():

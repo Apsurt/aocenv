@@ -180,6 +180,7 @@ def test_get_context_fallback():
         finally:
             os.chdir(old_cwd)
 
+
 def test_get_context_partial_constants():
     """Test get_context with partial constants uses defaults for missing values."""
     with tempfile.TemporaryDirectory() as tmpdir:

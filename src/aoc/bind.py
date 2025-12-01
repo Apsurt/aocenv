@@ -43,7 +43,12 @@ def run_bind(name: Optional[str], force: bool):
     if config["settings"]["commit_on_bind"] == "True":
         try:
             # Stage the file
-            add_result = subprocess.run(["git", "add", str(bind_path)], capture_output=True, text=True, check=False)
+            add_result = subprocess.run(
+                ["git", "add", str(bind_path)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             if add_result.returncode != 0:
                 print(f"Error staging file: {add_result.stderr}")
                 return
@@ -54,13 +59,20 @@ def run_bind(name: Optional[str], force: bool):
                 commit_message += f" ({name})"
 
             # Commit the file
-            commit_result = subprocess.run(["git", "commit", "-m", commit_message], capture_output=True, text=True, check=False)
+            commit_result = subprocess.run(
+                ["git", "commit", "-m", commit_message],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
 
             if commit_result.returncode == 0:
-                print(f"Solution committed to Git: \"{commit_message}\"")
+                print(f'Solution committed to Git: "{commit_message}"')
             else:
                 print(f"Error committing file: {commit_result.stderr}")
         except FileNotFoundError:
-            print("Git command not found. Please ensure Git is installed and in your PATH.")
+            print(
+                "Git command not found. Please ensure Git is installed and in your PATH."
+            )
         except Exception as e:
             print(f"An unexpected error occurred during git commit: {e}")
