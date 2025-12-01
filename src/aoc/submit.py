@@ -2,6 +2,7 @@ from typing import Any
 import requests
 from .context import get_context
 from .configuration import get_session_cookies, get_config, write_config
+from .bind import run_bind
 from .cache import read_submit_cache, write_submit_cache
 from bs4 import BeautifulSoup
 
@@ -78,6 +79,10 @@ def submit(answer: Any):
 
     if reponse_type == "CORRECT":
         config = get_config()
+        if config.getboolean("settings", "bind_on_correct"):
+            print("Correct answer! Binding solution...")
+            run_bind(name=None, force=False)
+
         if config.getboolean("settings", "auto_bump_on_correct"):
             current_year = ctx.year
             current_day = ctx.day
