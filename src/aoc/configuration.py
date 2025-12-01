@@ -10,6 +10,7 @@ def create_default_config(path, cookies):
         "bind_on_correct": "True",
         "clear_on_bind": "False",
         "commit_on_bind": "False",
+        "auto_bump_on_correct": "False",
     }
     config["variables"] = {
         "path": path,
@@ -19,6 +20,7 @@ def create_default_config(path, cookies):
         "default_part": "1",
     }
     return config
+
 
 
 def get_config():
@@ -98,6 +100,11 @@ def run_wizard(config):
         "commit_on_bind": str(
             click.confirm(
                 "Do you want to commit your solution when you bind the solution?"
+            )
+        ),
+        "auto_bump_on_correct": str(
+            click.confirm(
+                "Do you want to automatically bump to the next puzzle on a correct submission?"
             )
         ),
     }

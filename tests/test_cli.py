@@ -128,7 +128,7 @@ def test_init_with_wizard(tmp_path):
     runner = CliRunner()
     # Simulate user input for the wizard
     result = runner.invoke(
-        init, [str(tmp_path)], input="test_session\n2025\n1\n1\ny\nn\ny\n"
+        init, [str(tmp_path)], input="test_session\n2025\n1\n1\ny\nn\ny\ny\n"
     )
     assert result.exit_code == 0
 
@@ -140,6 +140,7 @@ def test_init_with_wizard(tmp_path):
     assert config.get("variables", "default_year") == "2025"
     assert config.get("variables", "default_day") == "1"
     assert config.get("variables", "default_part") == "1"
+    assert config.get("settings", "auto_bump_on_correct") == "True"
 
 
 def test_run_command():

@@ -1,7 +1,7 @@
 from typing import Any
 import requests
 from .context import get_context
-from .configuration import get_session_cookies
+from .configuration import get_session_cookies, get_config, write_config
 from .cache import read_submit_cache, write_submit_cache
 from bs4 import BeautifulSoup
 
@@ -75,3 +75,31 @@ def submit(answer: Any):
         write_submit_cache(ctx, cookies, answer, msg)
 
     handle_response(msg, reponse_type)
+
+    if reponse_type == "CORRECT":
+        config = get_config()
+        if config.getboolean("settings", "auto_bump_on_correct"):
+            current_year = ctx.year
+            current_day = ctx.day
+            current_part = ctx.part
+
+            new_year = current_year
+            new_day = current_day
+            new_part = current_part
+
+            if current_part == 1:
+                new_part = 2
+            elif current_part == 2:
+                if current_day == 25:
+                    new_day = 1
+                    new_part = 1
+                    new_year = current_year + 1
+                else:
+                    new_day = current_day + 1
+                    new_part = 1
+            
+            # Update config
+            config.set("variables", "default_year", str(new_year))
+            config.set("variables", "default_day", str(new_day))
+            config.set("variables", "default_part", str(new_part))
+            write_config(config)

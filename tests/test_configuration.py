@@ -22,6 +22,7 @@ def test_create_default_config():
     assert config["settings"]["bind_on_correct"] == "True"
     assert config["settings"]["clear_on_bind"] == "False"
     assert config["settings"]["commit_on_bind"] == "False"
+    assert config["settings"]["auto_bump_on_correct"] == "False"
     assert config["variables"]["path"] == "/test/path"
     assert config["variables"]["session_cookies"] == "test_cookie"
     assert config["variables"]["default_year"] == "2025"
@@ -156,7 +157,7 @@ def test_run_wizard():
 
     # Mock click.prompt and click.confirm
     with patch("click.prompt", side_effect=["wizard_session_token", 2025, 12, 2]):
-        with patch("click.confirm", side_effect=[True, False, True]):
+        with patch("click.confirm", side_effect=[True, False, True, True]):
             result_config = run_wizard(config)
 
     # Check that wizard updated the config
@@ -168,3 +169,4 @@ def test_run_wizard():
     assert result_config["settings"]["bind_on_correct"] == "True"
     assert result_config["settings"]["clear_on_bind"] == "False"
     assert result_config["settings"]["commit_on_bind"] == "True"
+    assert result_config["settings"]["auto_bump_on_correct"] == "True"
