@@ -1,9 +1,11 @@
 from typing import Any
 import requests
+import time
 from .context import get_context
 from .configuration import get_session_cookies, get_config, write_config
 from .bind import run_bind
 from .cache import read_submit_cache, write_submit_cache
+from .timing_context import add_submit_time
 from bs4 import BeautifulSoup
 
 
@@ -30,82 +32,83 @@ def classify_response(msg: str) -> str:
 
 
 def submit(answer: Any):
-    answer = str(answer)
+    start_time = time.perf_counter()
+    try:
+        answer = str(answer)
 
-    cookies = get_session_cookies()
-    ctx = get_context()
+        cookies = get_session_cookies()
+        ctx = get_context()
 
-    cache = read_submit_cache(ctx, cookies, answer)
-    if cache:
-        reponse_type = classify_response(cache)
-        handle_response(cache, reponse_type)
-        return
+        cache = read_submit_cache(ctx, cookies, answer)
+        if cache:
+            reponse_type = classify_response(cache)
+            handle_response(cache, reponse_type)
+            return
 
-    payload = {"level": ctx.part, "answer": answer}
+        payload = {"level": ctx.part, "answer": answer}
 
-    cookies = get_session_cookies()
-    if not cookies or "session" not in cookies:
-        raise ValueError("Session cookie is not set.")
+        cookies = get_session_cookies()
+        if not cookies or "session" not in cookies:
+            raise ValueError("Session cookie is not set.")
 
-    url = f"https://adventofcode.com/{ctx.year}/day/{ctx.day}/answer"
+        url = f"https://adventofcode.com/{ctx.year}/day/{ctx.day}/answer"
 
-    response = requests.post(url, data=payload, cookies=cookies, allow_redirects=False)
-    response.raise_for_status()
-
-    soup = BeautifulSoup(response.text, "html.parser")
-    article = soup.find("article")
-    if article:
-        msg = article.get_text().strip()
-    else:
-        raise RuntimeError(
-            "Did not find what we were looking for. Are your session cookies up-to-date?"
+        response = requests.post(
+            url, data=payload, cookies=cookies, allow_redirects=False
         )
+        response.raise_for_status()
 
-    assert isinstance(msg, str)
+        soup = BeautifulSoup(response.text, "html.parser")
+        article = soup.find("article")
+        if article:
+            msg = article.get_text().strip()
+        else:
+            raise RuntimeError(
+                "Did not find what we were looking for. Are your session cookies up-to-date?"
+            )
 
-    # cases:
-    # CORRECT CACHE
-    # WRONG CACHE
-    # TOO_FAST NOCACHE
-    # ANSWERED NOCACHE
-    # NO_ANSWER NOCACHE
-    reponse_type = classify_response(msg)
-    if reponse_type in ["TOO_FAST", "ANSWERED", "NO_ANSWER"]:
-        pass
-    if reponse_type in ["WRONG", "CORRECT"]:
-        write_submit_cache(ctx, cookies, answer, msg)
+        assert isinstance(msg, str)
 
-    handle_response(msg, reponse_type)
+        reponse_type = classify_response(msg)
+        if reponse_type in ["TOO_FAST", "ANSWERED", "NO_ANSWER"]:
+            pass
+        if reponse_type in ["WRONG", "CORRECT"]:
+            write_submit_cache(ctx, cookies, answer, msg)
 
-    if reponse_type == "CORRECT":
-        config = get_config()
+        handle_response(msg, reponse_type)
 
-        if config.getboolean("settings", "auto_bump_on_correct"):
-            current_year = ctx.year
-            current_day = ctx.day
-            current_part = ctx.part
+        if reponse_type == "CORRECT":
+            config = get_config()
 
-            new_year = current_year
-            new_day = current_day
-            new_part = current_part
+            if config.getboolean("settings", "auto_bump_on_correct"):
+                current_year = ctx.year
+                current_day = ctx.day
+                current_part = ctx.part
 
-            if current_part == 1:
-                new_part = 2
-            elif current_part == 2:
-                if current_day == 25:
-                    new_day = 1
-                    new_part = 1
-                    new_year = current_year + 1
-                else:
-                    new_day = current_day + 1
-                    new_part = 1
+                new_year = current_year
+                new_day = current_day
+                new_part = current_part
 
-            # Update config
-            config.set("variables", "default_year", str(new_year))
-            config.set("variables", "default_day", str(new_day))
-            config.set("variables", "default_part", str(new_part))
-            write_config(config)
+                if current_part == 1:
+                    new_part = 2
+                elif current_part == 2:
+                    if current_day == 25:
+                        new_day = 1
+                        new_part = 1
+                        new_year = current_year + 1
+                    else:
+                        new_day = current_day + 1
+                        new_part = 1
 
-        if config.getboolean("settings", "bind_on_correct"):
-            print("Correct answer! Binding solution...")
-            run_bind(name=None, force=False)
+                # Update config
+                config.set("variables", "default_year", str(new_year))
+                config.set("variables", "default_day", str(new_day))
+                config.set("variables", "default_part", str(new_part))
+                write_config(config)
+
+            if config.getboolean("settings", "bind_on_correct"):
+                print("Correct answer! Binding solution...")
+                run_bind(name=None, force=False)
+    finally:
+        end_time = time.perf_counter()
+        add_submit_time(end_time - start_time)

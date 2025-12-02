@@ -1,7 +1,7 @@
 import os
 import configparser
 from click.testing import CliRunner
-from aoc.cli import cli, init, run, context
+from aoc.cli import cli, init, context
 
 
 def test_cli_group():
@@ -142,8 +142,32 @@ def test_init_with_wizard(tmp_path):
     assert config.get("settings", "auto_bump_on_correct") == "True"
 
 
-def test_run_command():
+def test_run_command(tmp_path):
     """Test the run command."""
     runner = CliRunner()
-    result = runner.invoke(run)
-    assert result.exit_code == 0
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        # Initialize a project to create main.py and config.toml
+        init_result = runner.invoke(cli, ["init", ".", "--default"])
+        assert init_result.exit_code == 0
+
+        # Overwrite main.py with simple content
+        with open("main.py", "w") as f:
+            f.write("""import time
+
+print("Top-level setup code (should not be timed by main timer)")
+time.sleep(0.01)
+
+def main():
+    print("Main function executed.")
+    time.sleep(0.01)
+
+if __name__ == "__main__":
+    main()
+""")
+
+        # Now run the command
+        result = runner.invoke(cli, ["run"])
+
+        assert result.exit_code == 0
+        assert "Top-level setup code (should not be timed by main timer)" in result.output
+        assert "Main function executed." in result.output
