@@ -85,10 +85,10 @@ def init(path: str, session_cookies: Optional[str], default: bool):
 
 
 @cli.command()
-def run():
+@click.option("--time", is_flag=True, help="Time the solution")
+def run(time: bool):
     """Runs the main.py file"""
-    # TODO Add timing flag
-    run_main()
+    run_main(time)
 
 
 @cli.command()
