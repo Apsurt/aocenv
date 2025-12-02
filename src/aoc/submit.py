@@ -79,9 +79,6 @@ def submit(answer: Any):
 
     if reponse_type == "CORRECT":
         config = get_config()
-        if config.getboolean("settings", "bind_on_correct"):
-            print("Correct answer! Binding solution...")
-            run_bind(name=None, force=False)
 
         if config.getboolean("settings", "auto_bump_on_correct"):
             current_year = ctx.year
@@ -108,3 +105,7 @@ def submit(answer: Any):
             config.set("variables", "default_day", str(new_day))
             config.set("variables", "default_part", str(new_part))
             write_config(config)
+
+        if config.getboolean("settings", "bind_on_correct"):
+            print("Correct answer! Binding solution...")
+            run_bind(name=None, force=False)
