@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.0
+
+### Features
+- Implemented `aoc run --time` to accurately time the runtime of the solution. Ommiting the submit function and other unnecessary calls.
+
+### Fixes:
+- Bug that when auto-bump and clear-on-bind were both enabled the clear was executed before version bump, which resulted in old version being written into main.py
+
 ## v0.1.1
 
 ### Features
