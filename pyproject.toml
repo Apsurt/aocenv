@@ -1,6 +1,6 @@
 [project]
 name = "aocenv"
-version = "0.2.0"
+version = "0.2.1"
 description = "User-friendly environment management CLI and package for Advent of Code"
 authors = [
     {name = "Tymon Becella", email = "tymon.becella@gmail.com"},

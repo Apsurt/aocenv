@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.1
+
+### Fixes:
+- Bug what broke the timed run cmpletely, wrong path was used when declaring the timed_runner.py script.
+
 ## v0.2.0
 
 ### Features
