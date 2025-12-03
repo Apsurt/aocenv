@@ -27,6 +27,7 @@ dependencies = [
     "requests",
     "rich",
     "tqdm>=4.67.1",
+    "types-tqdm>=4.67.0.20250809",
 ]
 
 [project.urls]

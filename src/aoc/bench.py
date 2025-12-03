@@ -3,7 +3,7 @@ import os
 import time
 import importlib.util
 import sys
-from typing import Optional, Dict, List, Tuple
+from typing import Optional
 from pathlib import Path
 import ast
 from tqdm import tqdm
@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.console import Console
 
 from .configuration import get_config
-from .misc import get_solution_path, get_solution_filename
+from .misc import get_solution_filename
 from .context import Context
 
 def main_function_exists(filepath):
