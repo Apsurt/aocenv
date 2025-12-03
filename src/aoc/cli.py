@@ -106,7 +106,7 @@ def bind(name: Optional[str], force: bool):
 @click.argument("name", required=False)
 def load(year: int, day: int, part: int, name: Optional[str]):
     """Loads saved solution into main.py"""
-    run_load(Context(year, day, part), name)
+    run_load(Context(int(year), int(day), int(part)), name)
 
 
 @cli.command()
