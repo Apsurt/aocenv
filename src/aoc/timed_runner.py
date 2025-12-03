@@ -73,5 +73,5 @@ finally:
     # 4. Report the results.
     print("\n" + "=" * 40, file=sys.stderr)
     if final_time >= 0:
-        print(f"= Solution time   : {final_time:.6f} seconds", file=sys.stderr)
+        print(f"  Execution time : {final_time:.6f} seconds", file=sys.stderr)
     print("=" * 40, file=sys.stderr)

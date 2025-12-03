@@ -2,13 +2,14 @@ import subprocess
 from shutil import which
 import os
 import sys
+import importlib.resources
 
 def run_main(time_it: bool):
     """
     Runs the user's solution. If timing is requested, it uses the timed_runner.
     """
     if time_it:
-        script_path = "src/aoc/timed_runner.py"
+        script_path = str(importlib.resources.files('aoc').joinpath('timed_runner.py'))
     else:
         script_path = "main.py"
 
