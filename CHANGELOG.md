@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2
+
+### Features
+- Implemented `aoc bench [OPTIONS] [YEAR]` to benchmark all your solutions for advent of code or solutions for specified year.
+
 ## v0.2.1
 
 ### Fixes:
