@@ -14,6 +14,7 @@ from .run import run_main
 from .bind import run_bind
 from .load import run_load
 from .clear import run_clear
+from .bench import run_benchmark
 
 
 @click.group()
@@ -113,6 +114,12 @@ def load(year: int, day: int, part: int, name: Optional[str]):
 def clear():
     """Sets the main.py contents to the default"""
     run_clear()
+
+@cli.command()
+@click.argument("year", type=int, required=False)
+def bench(year: Optional[int]):
+    """Benchmarks all Advent of Code solutions."""
+    run_benchmark(year)
 
 
 # @cli.command()

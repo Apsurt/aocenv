@@ -25,6 +25,8 @@ dependencies = [
     "beautifulsoup4",
     "click",
     "requests",
+    "rich",
+    "tqdm>=4.67.1",
 ]
 
 [project.urls]
